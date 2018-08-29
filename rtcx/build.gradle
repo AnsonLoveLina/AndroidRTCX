@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    api files('libs/audio_device_java.jar')
+    api files('libs/autobanh.jar')
+    api files('libs/base_java.jar')
+    api files('libs/libjingle_peerconnection.jar')
+    api files('libs/engine.io-client-1.0.0.jar')
+    api files('libs/socket.io-client-1.0.0.jar')
+    api files('libs/fastjson-1.2.19.jar')
+    api files('libs/guava-18.0.jar')
+    api files('libs/jodd-core-3.6.6.jar')
+}
