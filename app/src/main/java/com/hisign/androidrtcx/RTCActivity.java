@@ -89,14 +89,14 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
 
     @Override
     public void onCallConnected(final SurfaceViewRenderer localRenderer) {
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
         localRenderer.setLayoutParams(layoutParams);
         surfaceViewContainer.addView(localRenderer);
     }
 
     @Override
     public void onCallJoin(final SurfaceViewRenderer remoteRenderer) {
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
         remoteRenderer.setLayoutParams(layoutParams);
         surfaceViewContainer.addView(remoteRenderer);
     }
