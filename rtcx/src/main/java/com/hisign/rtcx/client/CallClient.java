@@ -84,22 +84,7 @@ class CallClient implements AppRTCClient.SignalingEvents, PeerConnectionClient.P
         mUiThread = Thread.currentThread();
     }
 
-    private void checkPermission() {
-        String[] permissions = new String[Constant.MANDATORY_PERMISSIONS.length];
-        int j = 0;
-        // Check for mandatory permissions.
-        for (int i = 0; i < Constant.MANDATORY_PERMISSIONS.length; i++) {
-            String permission = Constant.MANDATORY_PERMISSIONS[i];
-            if (ContextUtils.getApplicationContext().checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                onCallError("Permission " + permission + " is not granted");
-                permissions[j++] = permission;
-            }
-        }
-        callBack.onPermissionNotGranted(permissions);
-    }
-
     private void init() {
-        checkPermission();
 
         final CallClient.ProxyRenderer remoteProxyRenderer = new CallClient.ProxyRenderer();
         final CallClient.ProxyRenderer localProxyRenderer = new CallClient.ProxyRenderer();

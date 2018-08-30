@@ -45,8 +45,6 @@ public class RtcClient {
     }
 
     public interface CallBack {
-        void onPermissionNotGranted(final String[] requiredPermissions);
-
         void onCallError(String error);
 
         void onCallConnected(SurfaceViewRenderer localRenderer);

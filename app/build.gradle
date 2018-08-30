@@ -27,6 +27,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'pub.devrel:easypermissions:1.3.0'
 //    implementation('name': 'rtcxsdk-debug', 'ext': 'aar')
     implementation project(':rtcx')
     testImplementation 'junit:junit:4.12'
