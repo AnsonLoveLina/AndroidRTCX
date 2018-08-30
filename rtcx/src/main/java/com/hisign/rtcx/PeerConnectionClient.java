@@ -316,10 +316,6 @@ public class PeerConnectionClient {
          * Callback fired once peer connection error happened.
          */
         void onPeerConnectionError(final String description);
-
-        void onCallJoin();
-
-        void onCallConnected();
     }
 
     private PeerConnectionClient() {
@@ -602,7 +598,7 @@ public class PeerConnectionClient {
         // Create SDP constraints.
         sdpMediaConstraints = new MediaConstraints();
         sdpMediaConstraints.mandatory.add(
-                new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"));
+                new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
     }
 
     private void createPeerConnectionInternal(EglBase.Context renderEGLContext) {
@@ -905,7 +901,6 @@ public class PeerConnectionClient {
                     videoCapturer.startCapture(videoWidth, videoHeight, videoFps);
                     videoCapturerStopped = false;
                 }
-                events.onCallConnected();
             }
         });
     }
@@ -1252,7 +1247,6 @@ public class PeerConnectionClient {
                             remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
                         }
                     }
-                    events.onCallJoin();
                 }
             });
         }

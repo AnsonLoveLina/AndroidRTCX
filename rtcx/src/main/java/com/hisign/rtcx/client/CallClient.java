@@ -116,10 +116,10 @@ class CallClient implements AppRTCClient.SignalingEvents, PeerConnectionClient.P
         peerConnectionClient.createPeerConnectionFactory(
                 getApplicationContext(), peerConnectionParameters, this);
         startCall();
+        onCallConnected();
     }
 
-    public void call(String videoFileAsCamera) {
-        this.videoFileAsCamera = videoFileAsCamera;
+    public void call() {
         this.activityRunning = true;
         // Video is not paused for screencapture. See onPause.
 //        if (peerConnectionClient != null && !screencaptureEnabled) {
@@ -520,22 +520,20 @@ class CallClient implements AppRTCClient.SignalingEvents, PeerConnectionClient.P
         onCallError(description);
     }
 
-    @Override
-    public void onCallJoin() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                callBack.onCallJoin(remoteRenderer);
-            }
-        });
-    }
-
-    @Override
     public void onCallConnected() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 callBack.onCallConnected(localRenderer);
+            }
+        });
+    }
+
+    public void onCallJoin() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                callBack.onCallJoin(remoteRenderer);
             }
         });
     }
@@ -550,5 +548,6 @@ class CallClient implements AppRTCClient.SignalingEvents, PeerConnectionClient.P
         }
         // Enable statistics callback.
         peerConnectionClient.enableStatsEvents(true, Constant.STAT_CALLBACK_PERIOD);
+        onCallJoin();
     }
 }

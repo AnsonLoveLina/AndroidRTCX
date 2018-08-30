@@ -54,15 +54,15 @@ public class RtcClient {
         void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices);
     }
 
-    private static Map<String,CallClient> callClientMap = Maps.newHashMap();
+    private static Map<String, CallClient> callClientMap = Maps.newHashMap();
 
     public static void call(String roomId, String videoFileAsCamera, CallBack callBack) {
         CallClient callClient = new CallClient(roomId, callBack);
-        callClient.call(videoFileAsCamera);
+        callClient.call();
         callClientMap.put(roomId,callClient);
     }
 
-    public static void release(String roomId){
+    public static void release(String roomId) {
         CallClient callClient = callClientMap.get(roomId);
         callClient.disconnect();
     }
