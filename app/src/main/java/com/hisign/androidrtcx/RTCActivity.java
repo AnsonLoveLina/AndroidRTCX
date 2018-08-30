@@ -57,6 +57,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
             public void onClick(View view) {
                 String roomId = editText.getText().toString();
                 RtcClient.release(roomId);
+                surfaceViewContainer.removeAllViews();
             }
         });
     }
