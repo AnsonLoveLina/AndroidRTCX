@@ -1,9 +1,6 @@
 package com.hisign.androidrtcx;
 
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,14 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import com.hisign.rtcx.AppRTCAudioManager;
 import com.hisign.rtcx.Constant;
+import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
 
-import org.webrtc.ContextUtils;
 import org.webrtc.SurfaceViewRenderer;
 
 import java.util.List;
@@ -32,6 +28,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     private LinearLayout surfaceViewContainer;
     private int PERMISSION_REQUEST_CODE = 13;
     private EditText editText;
+    private CallClient callClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +37,8 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
         editText = findViewById(R.id.edit_roomid);
         Button callButton = findViewById(R.id.button_call);
         Button discallButton = findViewById(R.id.button_discall);
+        Button switchButton = findViewById(R.id.button_camera_switch);
+        Button pauseMicButton = findViewById(R.id.button_toggle_mic);
         LinearLayout contentLayout = findViewById(R.id.rtc_content_layout);
         surfaceViewContainer = contentLayout.findViewById(R.id.surface_container);
         callButton.setOnClickListener(new View.OnClickListener() {
@@ -60,8 +59,25 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
                 surfaceViewContainer.removeAllViews();
             }
         });
-    }
+        switchButton.setOnClickListener(new View.OnClickListener() {
 
+            @Override
+            public void onClick(View view) {
+                if (callClient!=null){
+                    callClient.switchCamera();
+                }
+            }
+        });
+        pauseMicButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                if (callClient!=null){
+                    callClient.toggleMic();
+                }
+            }
+        });
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -74,7 +90,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     @Override
     public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
         String roomId = editText.getText().toString();
-        RtcClient.call(roomId, null, RTCActivity.this);
+        callClient = RtcClient.call(roomId,  RTCActivity.this);
     }
 
     @Override

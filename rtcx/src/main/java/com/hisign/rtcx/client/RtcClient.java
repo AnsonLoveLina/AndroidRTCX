@@ -56,15 +56,18 @@ public class RtcClient {
 
     private static Map<String, CallClient> callClientMap = Maps.newHashMap();
 
-    public static void call(String roomId, String videoFileAsCamera, CallBack callBack) {
+    public static CallClient call(String roomId, CallBack callBack) {
         CallClient callClient = new CallClient(roomId, callBack);
         callClient.call();
-        callClientMap.put(roomId,callClient);
+        callClientMap.put(roomId, callClient);
+        return callClient;
     }
 
     public static void release(String roomId) {
         CallClient callClient = callClientMap.get(roomId);
+        callClient.stopCall();
         callClient.disconnect();
+        callClient = null;
     }
 
     private static void setDefParams() {

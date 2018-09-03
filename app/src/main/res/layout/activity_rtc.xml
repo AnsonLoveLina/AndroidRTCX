@@ -29,4 +29,16 @@
         android:layout_height="wrap_content"
         android:text="discall"/>
 
+    <Button
+        android:id="@+id/button_camera_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SwitchCamera"/>
+
+    <Button
+        android:id="@+id/button_toggle_mic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PauseMic"/>
+
 </LinearLayout>
