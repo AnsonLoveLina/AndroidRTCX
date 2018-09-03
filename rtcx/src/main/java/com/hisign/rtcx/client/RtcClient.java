@@ -68,6 +68,11 @@ public class RtcClient {
         callClient.stopCall();
         callClient.disconnect();
         callClient = null;
+        releaseRtcClient(roomId);
+    }
+
+    public static void releaseRtcClient(String roomId) {
+        callClientMap.remove(roomId);
     }
 
     private static void setDefParams() {

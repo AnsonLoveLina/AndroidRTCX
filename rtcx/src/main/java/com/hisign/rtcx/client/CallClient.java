@@ -409,7 +409,7 @@ public class CallClient {
      * @param height
      * @param framerate
      */
-    public void onCaptureFormatChange(int width, int height, int framerate) {
+    public void changeCaptureFormat(int width, int height, int framerate) {
         if (peerConnectionClient != null) {
             peerConnectionClient.changeCaptureFormat(width, height, framerate);
         }
