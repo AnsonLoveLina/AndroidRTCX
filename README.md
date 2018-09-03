@@ -72,6 +72,10 @@
 - void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices)
 
     当声音设备更换了，触发（比如，用外接话筒等）
+   
+
+
+参数都在Constant里面，可以调整
     
 
 rtcServer搭建ByDocker：[This link](https://github.com/AnsonLoveLina/rtcServerDockerfile)
