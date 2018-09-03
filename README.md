@@ -1,5 +1,6 @@
 ##Android RTCX
-###demo
+
+###DEMO
 <pre><code>
         //初始化
         RtcClient.init(getApplicationContext());
