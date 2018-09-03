@@ -72,3 +72,8 @@
 - void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices)
 
     当声音设备更换了，触发（比如，用外接话筒等）
+    
+
+rtcServer搭建ByDocker：[This link](https://github.com/AnsonLoveLina/rtcServerDockerfile)
+
+rtcServerWeb客户端：[This link](https://211.157.146.7:9000/)
