@@ -1,6 +1,6 @@
-#Android RTCX
+# Android RTCX
 
-##DEMO
+## DEMO
 详见app模块
 <pre><code>
         //初始化
@@ -11,7 +11,7 @@
         RtcClient.release(roomId);
 </code></pre>
 
-##RtcClient静态方法
+## RtcClient静态方法
 
 - RtcClient.init(context)
 
@@ -29,7 +29,7 @@
     callClient = null;
     RtcClient.releaseRtcClient(roomId);
 
-##CallClient公开方法
+## CallClient公开方法
 - call()：
 
     开启本地视频流输出
@@ -55,7 +55,7 @@
     修改摄像头输出视频流的规格和参数，最后一个为FPS参数。注：若无特殊需求慎用
 
 
-##RtcClient.CallBack
+## RtcClient.CallBack
 
 - void onCallError(String error)
 
