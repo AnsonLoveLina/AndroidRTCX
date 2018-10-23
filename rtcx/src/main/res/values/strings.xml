@@ -1,0 +1,3 @@
+<resources>
+    <string name="ROOM_SERVER_URL_DEFAULT">http://211.157.146.7:8080</string>
+</resources>

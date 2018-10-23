@@ -176,9 +176,13 @@ public class CallClient {
                 public void run() {
                     Log.d(TAG, "ICE connected, delay=" + delta + "ms");
                     iceConnected = true;
-                    callConnected();
                 }
             });
+        }
+
+        @Override
+        public void onAddRemoteStream() {
+            callConnected();
         }
 
         @Override

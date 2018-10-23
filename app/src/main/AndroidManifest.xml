@@ -32,6 +32,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".RTCActivity" />
+        <activity android:name=".UserChatActivity"></activity>
     </application>
 
 </manifest>

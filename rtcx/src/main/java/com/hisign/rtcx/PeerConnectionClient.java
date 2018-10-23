@@ -316,6 +316,8 @@ public class PeerConnectionClient {
          * Callback fired once peer connection error happened.
          */
         void onPeerConnectionError(final String description);
+
+        void onAddRemoteStream();
     }
 
     private PeerConnectionClient() {
@@ -1246,6 +1248,7 @@ public class PeerConnectionClient {
                         for (VideoRenderer.Callbacks remoteRender : remoteRenders) {
                             remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
                         }
+                        events.onAddRemoteStream();
                     }
                 }
             });
