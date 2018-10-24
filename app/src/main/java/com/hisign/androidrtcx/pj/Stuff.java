@@ -1,6 +1,6 @@
-package com.hisign.rtcx.pj;
+package com.hisign.androidrtcx.pj;
 
-import com.hisign.rtcx.internet.SocketIOClient;
+import com.hisign.androidrtcx.internet.SocketIOClient;
 
 public class Stuff {
     public enum StuffType {

@@ -32,7 +32,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".RTCActivity" />
-        <activity android:name=".UserChatActivity"></activity>
+        <activity android:name=".GroupChatActivity" />
+        <activity
+            android:name=".CallActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="fullUser"
+            android:theme="@style/CallActivityTheme"/>
     </application>
 
 </manifest>
