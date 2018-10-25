@@ -1,5 +1,6 @@
 package com.hisign.androidrtcx;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -33,36 +34,29 @@ public class CallActivity extends AppCompatActivity implements RtcClient.CallBac
     private EditText editText;
     private CallClient callClient;
 
-    public static void startActivityForResult(String roomId){
-        Intent intent = new Intent(this, CallActivity.class);
-        startActivityForResult(intent, CALLREQUEST);
+    public static void startAction(Context context, String roomId) {
+        Intent intent = new Intent(context, CallActivity.class);
+        intent.putExtra("roomId", roomId);
+        context.startActivity(intent);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_call);
+        Intent intent = this.getIntent();
+        final String roomId = intent.getStringExtra("roomId");
         editText = findViewById(R.id.edit_roomid);
-        Button callButton = findViewById(R.id.button_call);
         Button discallButton = findViewById(R.id.button_discall);
         Button switchButton = findViewById(R.id.button_camera_switch);
         Button pauseMicButton = findViewById(R.id.button_toggle_mic);
         LinearLayout contentLayout = findViewById(R.id.rtc_content_layout);
         surfaceViewContainer = contentLayout.findViewById(R.id.surface_container);
-        callButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                EasyPermissions.requestPermissions(
-                        new PermissionRequest.Builder(CallActivity.this, PERMISSION_REQUEST_CODE, Constant.MANDATORY_PERMISSIONS)
-                                .build());
-            }
-        });
+        callClient = RtcClient.call(roomId, CallActivity.this);
         discallButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                String roomId = editText.getText().toString();
                 RtcClient.release(roomId);
                 surfaceViewContainer.removeAllViews();
             }
@@ -71,7 +65,7 @@ public class CallActivity extends AppCompatActivity implements RtcClient.CallBac
 
             @Override
             public void onClick(View view) {
-                if (callClient!=null){
+                if (callClient != null) {
                     callClient.switchCamera();
                 }
             }
@@ -80,7 +74,7 @@ public class CallActivity extends AppCompatActivity implements RtcClient.CallBac
 
             @Override
             public void onClick(View view) {
-                if (callClient!=null){
+                if (callClient != null) {
                     callClient.toggleMic();
                 }
             }

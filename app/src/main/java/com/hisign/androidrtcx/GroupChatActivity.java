@@ -174,7 +174,7 @@ public class GroupChatActivity extends Activity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         stuffRecyclerView.setLayoutManager(layoutManager);
         //设置adapter
-        stuffAdapter = new StuffAdapter(stuffs, socketIOClient);
+        stuffAdapter = new StuffAdapter(stuffs, socketIOClient,GroupChatActivity.this);
         stuffRecyclerView.setAdapter(stuffAdapter);
         //设置发送按钮
         send = (Button) findViewById(R.id.button);
@@ -210,6 +210,7 @@ public class GroupChatActivity extends Activity {
                         .setPositiveButton("跪舔", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                CallActivity.startAction(GroupChatActivity.this,stuff.getContent() == null ? userId : stuff.getContent());
                             }
                         }).setNegativeButton("丑拒", new DialogInterface.OnClickListener() {
                             @Override

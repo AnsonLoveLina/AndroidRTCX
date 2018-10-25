@@ -1,6 +1,8 @@
 package com.hisign.androidrtcx;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.telecom.Call;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import com.hisign.rtcx.client.RtcClient;
 import java.util.List;
 
 public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> {
+
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         LinearLayout leftLayout;
@@ -38,10 +41,12 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
 
     private List<Stuff> sutffs;
     private SocketIOClient socketIOClient;
+    private final Context context;
 
-    public StuffAdapter(List<Stuff> sutffs, SocketIOClient socketIOClient) {
+    public StuffAdapter(List<Stuff> sutffs, SocketIOClient socketIOClient, Context context) {
         this.sutffs = sutffs;
         this.socketIOClient = socketIOClient;
+        this.context = context;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
                         }
                     }).start();
 
-
+                    CallActivity.startAction(context, stuff.getUserCustomer().getCustomerId());
                 }
             });
             holder.leftLayout.setVisibility(View.VISIBLE);
