@@ -47,12 +47,7 @@ public class GroupChatActivity extends Activity {
 
     private StuffAdapter stuffAdapter;
 
-    private SocketIOClient socketIOClient;
-
-    private SocketIOClient.Customer groupCustomer;
-
     private final String userId = Integer.toString((new Random()).nextInt(100000000));
-    private SocketIOClient.Customer userCustomer;
 
     public static final String EVENT_STUFF = "STUFF";
 
@@ -60,82 +55,6 @@ public class GroupChatActivity extends Activity {
 
     public static final String EVENT_CALL_USER = "CALLUSER";
     public static final String EVENT_HANGUP_USER = "HANGUPUSER";
-
-    private void register() {
-        EventBus.getDefault().register(this);
-        //ExecutorService executor = Executors.newSingleThreadExecutor();
-        socketIOClient = new SocketIOClient(getString(R.string.chat_socketio_url_default));
-        groupCustomer = new SocketIOClient.Customer("group", "110");
-        userCustomer = new SocketIOClient.Customer("user", userId);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                socketIOClient.connection();
-                socketIOClient.onConnection(new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
-                        socketIOClient.onListener(EVENT_STUFF_HISTORY, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(EVENT_STUFF, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    stuff.setType(Stuff.StuffType.TYPE_RECEIVE);
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(EVENT_CALL_USER, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(SocketIOClient.EVENT_INFO, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                Log.i(TAG, args[0].toString());
-                            }
-                        });
-                    }
-                });
-            }
-        }).start();
-
-    }
-
-    private void unRegister() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                socketIOClient.unRegister(groupCustomer);
-            }
-        }).start();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-    }
 
     private void sendStuff(final Stuff stuff) {
         new Thread(new Runnable() {
@@ -146,28 +65,11 @@ public class GroupChatActivity extends Activity {
         }).start();
     }
 
-    private Stuff parseObject(Object object) {
-        Stuff stuff = null;
-        if (object != null && object.getClass() == Stuff.class) {
-            stuff = (Stuff) object;
-        } else if (object != null && object.getClass() == String.class) {
-            try {
-                stuff = JSON.parseObject(object.toString(), Stuff.class);
-            } catch (Exception e) {
-                Log.e(TAG, object.toString() + "\ncan not parse to stuff!", e);
-            }
-        } else {
-            Log.e(TAG, "can not parse to stuff!");
-        }
-        return stuff;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_group_chat);
-        register();
         setTitle(userId + "的群聊");
         stuffRecyclerView = (RecyclerView) findViewById(R.id.stuff_recycler_view);
         //设置layoutManager
@@ -196,7 +98,6 @@ public class GroupChatActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unRegister();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

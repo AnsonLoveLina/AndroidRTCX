@@ -37,7 +37,12 @@
             android:name=".CallActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="fullUser"
-            android:theme="@style/CallActivityTheme"/>
+            android:theme="@style/CallActivityTheme" />
+
+        <service
+            android:name=".SocketService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
