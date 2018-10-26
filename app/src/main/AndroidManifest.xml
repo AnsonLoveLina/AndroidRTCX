@@ -32,15 +32,15 @@
             </intent-filter>
         </activity>
         <activity android:name=".RTCActivity" />
-        <activity android:name=".GroupChatActivity" />
+        <activity android:name=".groupchat.GroupChatActivity" />
         <activity
-            android:name=".CallActivity"
+            android:name=".groupchat.CallActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="fullUser"
             android:theme="@style/CallActivityTheme" />
 
         <service
-            android:name=".SocketService"
+            android:name=".groupchat.SocketService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

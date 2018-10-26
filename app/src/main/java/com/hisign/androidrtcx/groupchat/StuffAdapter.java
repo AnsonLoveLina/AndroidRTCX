@@ -1,8 +1,7 @@
-package com.hisign.androidrtcx;
+package com.hisign.androidrtcx.groupchat;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.telecom.Call;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +10,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
-import com.hisign.androidrtcx.internet.SocketIOClient;
-import com.hisign.androidrtcx.pj.Stuff;
-import com.hisign.rtcx.client.RtcClient;
+import com.hisign.androidrtcx.R;
+import com.hisign.rtcx.internet.SocketIOClient;
+import com.hisign.androidrtcx.groupchat.pj.Stuff;
 
 import java.util.List;
 

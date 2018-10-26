@@ -34,8 +34,14 @@ dependencies {
     api files('libs/autobanh.jar')
     api files('libs/base_java.jar')
     api files('libs/libjingle_peerconnection.jar')
-    api files('libs/engine.io-client-1.0.0.jar')
-    api files('libs/socket.io-client-1.0.0.jar')
+    api ('io.socket:socket.io-client:1.0.0') {
+        // excluding org.json which is provided by Android
+        exclude group: 'org.json', module: 'json'
+    }
+    api ('io.socket:engine.io-client:1.0.0') {
+        // excluding org.json which is provided by Android
+        exclude group: 'org.json', module: 'json'
+    }
     api files('libs/fastjson-1.2.19.jar')
     api files('libs/guava-18.0.jar')
     api files('libs/jodd-core-3.6.6.jar')

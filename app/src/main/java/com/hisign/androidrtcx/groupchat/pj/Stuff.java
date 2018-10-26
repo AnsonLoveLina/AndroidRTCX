@@ -1,6 +1,6 @@
-package com.hisign.androidrtcx.pj;
+package com.hisign.androidrtcx.groupchat.pj;
 
-import com.hisign.androidrtcx.internet.SocketIOClient;
+import com.hisign.rtcx.internet.SocketIOClient;
 
 public class Stuff {
     public enum StuffType {
