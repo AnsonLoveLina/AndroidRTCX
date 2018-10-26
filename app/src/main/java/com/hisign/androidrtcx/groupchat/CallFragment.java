@@ -20,6 +20,9 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.hisign.androidrtcx.R;
+import com.hisign.rtcx.client.RtcClient;
+
 import org.webrtc.RendererCommon.ScalingType;
 
 /**
@@ -34,7 +37,6 @@ public class CallFragment extends Fragment {
   private ImageButton toggleMuteButton;
   private TextView captureFormatText;
   private SeekBar captureFormatSlider;
-  private OnCallEvents callEvents;
   private ScalingType scalingType;
   private boolean videoCallEnabled = true;
 
@@ -96,26 +98,6 @@ public class CallFragment extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-
-    boolean captureSliderEnabled = false;
-    Bundle args = getArguments();
-    if (args != null) {
-      String contactName = args.getString(RoomUtil.EXTRA_ROOMID);
-      contactView.setText(contactName);
-      videoCallEnabled = args.getBoolean(RoomUtil.EXTRA_VIDEO_CALL, true);
-      captureSliderEnabled = videoCallEnabled
-          && args.getBoolean(RoomUtil.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, false);
-    }
-    if (!videoCallEnabled) {
-      cameraSwitchButton.setVisibility(View.INVISIBLE);
-    }
-    if (captureSliderEnabled) {
-      captureFormatSlider.setOnSeekBarChangeListener(
-          new CaptureQualityController(captureFormatText, callEvents));
-    } else {
-      captureFormatText.setVisibility(View.GONE);
-      captureFormatSlider.setVisibility(View.GONE);
-    }
   }
 
   // TODO(sakal): Replace with onAttach(Context) once we only support API level 23+.
@@ -123,6 +105,5 @@ public class CallFragment extends Fragment {
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-    callEvents = (OnCallEvents) activity;
   }
 }
