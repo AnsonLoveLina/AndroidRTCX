@@ -56,8 +56,8 @@ public class RtcClient {
 
     private static Map<String, CallClient> callClientMap = Maps.newHashMap();
 
-    public static CallClient call(String roomId, CallBack callBack) {
-        CallClient callClient = new CallClient(roomId, callBack);
+    public static CallClient call(String roomId, CallBack callBack, SurfaceViewRenderer... screenViews) {
+        CallClient callClient = new CallClient(roomId, callBack, screenViews);
         callClient.call();
         callClientMap.put(roomId, callClient);
         return callClient;
@@ -65,10 +65,12 @@ public class RtcClient {
 
     public static void release(String roomId) {
         CallClient callClient = callClientMap.get(roomId);
-        callClient.stopCall();
-        callClient.disconnect();
-        callClient = null;
-        releaseRtcClient(roomId);
+        if (callClient != null) {
+            callClient.stopCall();
+            callClient.disconnect();
+            callClient = null;
+            releaseRtcClient(roomId);
+        }
     }
 
     public static void releaseRtcClient(String roomId) {

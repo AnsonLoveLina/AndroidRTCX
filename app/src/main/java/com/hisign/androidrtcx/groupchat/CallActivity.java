@@ -1,5 +1,6 @@
 package com.hisign.androidrtcx.groupchat;
 
+import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
@@ -22,7 +23,7 @@ import org.webrtc.SurfaceViewRenderer;
 
 import java.util.Set;
 
-public class CallActivity extends AppCompatActivity implements RtcClient.CallBack {
+public class CallActivity extends Activity implements RtcClient.CallBack {
     private static final String TAG = CallActivity.class.getSimpleName();
     private FrameLayout surfaceViewContainer;
     private int PERMISSION_REQUEST_CODE = 13;
@@ -41,42 +42,23 @@ public class CallActivity extends AppCompatActivity implements RtcClient.CallBac
         setContentView(R.layout.activity_call);
         Intent intent = this.getIntent();
         final String roomId = intent.getStringExtra("roomId");
-        editText = findViewById(R.id.edit_roomid);
-        Button discallButton = findViewById(R.id.button_discall);
-        Button switchButton = findViewById(R.id.button_camera_switch);
-        Button pauseMicButton = findViewById(R.id.button_toggle_mic);
-        surfaceViewContainer = findViewById(R.id.surface_view_container);
+        SurfaceViewRenderer fullscreenView = findViewById(R.id.fullscreen_video_view);
+        SurfaceViewRenderer pipscreenView = findViewById(R.id.pip_video_view);
+        callClient = RtcClient.call(roomId, CallActivity.this, fullscreenView, pipscreenView);
         CallFragment callFragment = new CallFragment();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.add(R.id.call_fragment_container, callFragment);
         ft.commit();
-        callClient = RtcClient.call(roomId, CallActivity.this);
-        discallButton.setOnClickListener(new View.OnClickListener() {
+    }
 
-            @Override
-            public void onClick(View view) {
-                RtcClient.release(roomId);
-                surfaceViewContainer.removeAllViews();
-            }
-        });
-        switchButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    protected void onDestroy() {
+        RtcClient.release(callClient.getRoomId());
+        super.onDestroy();
+    }
 
-            @Override
-            public void onClick(View view) {
-                if (callClient != null) {
-                    callClient.switchCamera();
-                }
-            }
-        });
-        pauseMicButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                if (callClient != null) {
-                    callClient.toggleMic();
-                }
-            }
-        });
+    public CallClient getCallClient() {
+        return callClient;
     }
 
     @Override
@@ -86,17 +68,12 @@ public class CallActivity extends AppCompatActivity implements RtcClient.CallBac
 
     @Override
     public void onCallConnected(final SurfaceViewRenderer localRenderer) {
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        localRenderer.setLayoutParams(layoutParams);
         localRenderer.setZOrderOnTop(false);
-        surfaceViewContainer.addView(localRenderer);
     }
 
     @Override
     public void onCallJoin(final SurfaceViewRenderer remoteRenderer) {
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        remoteRenderer.setLayoutParams(layoutParams);
-        surfaceViewContainer.addView(remoteRenderer);
+        remoteRenderer.setZOrderMediaOverlay(true);
     }
 
     @Override

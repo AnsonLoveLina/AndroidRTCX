@@ -5,17 +5,23 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.alibaba.fastjson.JSON;
 import com.hisign.androidrtcx.R;
+import com.hisign.androidrtcx.RTCActivity;
+import com.hisign.rtcx.Constant;
+import com.hisign.rtcx.client.RtcClient;
 import com.hisign.rtcx.internet.SocketIOClient;
 import com.hisign.androidrtcx.groupchat.pj.Stuff;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -24,6 +30,8 @@ import java.util.List;
 import java.util.Random;
 
 import jodd.util.StringUtil;
+import pub.devrel.easypermissions.EasyPermissions;
+import pub.devrel.easypermissions.PermissionRequest;
 
 public class GroupChatActivity extends Activity {
     private static final String TAG = "GroupChatActivity";
@@ -40,7 +48,9 @@ public class GroupChatActivity extends Activity {
 
     private StuffAdapter stuffAdapter;
 
-    private final String userId = Integer.toString((new Random()).nextInt(100000000));
+    private String userId;
+
+    private SocketIOClient socketIOClient;
 
     public static final String EVENT_STUFF = "STUFF";
 
@@ -60,12 +70,30 @@ public class GroupChatActivity extends Activity {
         }).start();
     }
 
+    private int PERMISSION_REQUEST_CODE = 13;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_group_chat);
-        SocketService.startService(GroupChatActivity.this);
+
+        EasyPermissions.requestPermissions(
+                new PermissionRequest.Builder(GroupChatActivity.this, PERMISSION_REQUEST_CODE, Constant.MANDATORY_PERMISSIONS)
+                        .build());
+
+        EventBus.getDefault().register(this);
+        socketIOClient = SocketIOClientUtil.getInstance(null);
+        Log.i(TAG, "getUserStart");
+        userId = SocketIOClientUtil.getUser().getCustomerId();
         setTitle(userId + "的群聊");
         stuffRecyclerView = (RecyclerView) findViewById(R.id.stuff_recycler_view);
         //设置layoutManager
@@ -94,7 +122,7 @@ public class GroupChatActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        SocketService.stopService(GroupChatActivity.this);
+        EventBus.getDefault().unregister(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -117,7 +145,7 @@ public class GroupChatActivity extends Activity {
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        SocketIOClientUtil.getInstance(null).send(EVENT_HANGUP_USER, stuff.getUserCustomer().getCustomerId(), JSON.toJSONString(outStuff));
+                                        socketIOClient.send(EVENT_HANGUP_USER, stuff.getUserCustomer().getCustomerId(), JSON.toJSONString(outStuff));
                                     }
                                 }).start();
                             }

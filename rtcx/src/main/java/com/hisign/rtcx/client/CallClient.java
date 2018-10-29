@@ -59,6 +59,10 @@ public class CallClient {
     //    private boolean screencaptureEnabled = false;
     private String videoFileAsCamera = null;
 
+    public String getRoomId() {
+        return roomId;
+    }
+
     public static class ProxyRenderer implements VideoRenderer.Callbacks {
         private VideoRenderer.Callbacks target;
 
@@ -77,14 +81,18 @@ public class CallClient {
         }
     }
 
-    CallClient(String roomId, RtcClient.CallBack callBack) {
+    CallClient(String roomId, RtcClient.CallBack callBack, SurfaceViewRenderer... screenViews) {
         this.roomId = roomId;
         this.callBack = callBack;
-        init();
+        if (screenViews != null && screenViews.length == 2) {
+            init(screenViews[0], screenViews[1]);
+        } else {
+            init(null, null);
+        }
         mUiThread = Thread.currentThread();
     }
 
-    private void init() {
+    private void init(SurfaceViewRenderer fullscreenView, SurfaceViewRenderer pipscreenView) {
 
         final CallClient.ProxyRenderer remoteProxyRenderer = new CallClient.ProxyRenderer();
         final CallClient.ProxyRenderer localProxyRenderer = new CallClient.ProxyRenderer();
@@ -92,15 +100,23 @@ public class CallClient {
         this.remoteProxyRenderer = remoteProxyRenderer;
 
         rootEglBase = EglBase.create();
-        localRenderer = new SurfaceViewRenderer(getApplicationContext());
-        remoteRenderer = new SurfaceViewRenderer(getApplicationContext());
-        localRenderer.init(rootEglBase.getEglBaseContext(), null);
-        localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-        localRenderer.setEnableHardwareScaler(true /* enabled */);
+        if (fullscreenView != null) {
+            localRenderer = fullscreenView;
+        } else {
+            localRenderer = new SurfaceViewRenderer(getApplicationContext());
+        }
+        if (pipscreenView != null) {
+            remoteRenderer = pipscreenView;
+        } else {
+            remoteRenderer = new SurfaceViewRenderer(getApplicationContext());
+        }
 
         remoteRenderer.init(rootEglBase.getEglBaseContext(), null);
         remoteRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-        remoteRenderer.setZOrderMediaOverlay(true);
+        localRenderer.init(rootEglBase.getEglBaseContext(), null);
+        localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
+
+        localRenderer.setEnableHardwareScaler(true /* enabled */);
         remoteRenderer.setEnableHardwareScaler(true /* enabled */);
 
         localProxyRenderer.setTarget(localRenderer);
@@ -391,7 +407,9 @@ public class CallClient {
             audioManager.stop();
             audioManager = null;
         }
-        rootEglBase.release();
+        if (rootEglBase.hasSurface()) {
+            rootEglBase.release();
+        }
     }
 
 //    public void onCallHangUp() {
@@ -409,6 +427,7 @@ public class CallClient {
 
     /**
      * 调整摄像头对应输出流参数
+     *
      * @param width
      * @param height
      * @param framerate
@@ -475,6 +494,18 @@ public class CallClient {
         } else {
             action.run();
         }
+    }
+
+    public void onVideoScalingSwitch(RendererCommon.ScalingType scalingType) {
+        localRenderer.setScalingType(scalingType);
+    }
+
+    public void setSwappedFeeds(boolean isSwappedFeeds) {
+        Logging.d(TAG, "setSwappedFeeds: " + isSwappedFeeds);
+        localProxyRenderer.setTarget(isSwappedFeeds ? localRenderer : remoteRenderer);
+        remoteProxyRenderer.setTarget(isSwappedFeeds ? remoteRenderer : localRenderer);
+        localRenderer.setMirror(isSwappedFeeds);
+        remoteRenderer.setMirror(!isSwappedFeeds);
     }
 
     private VideoCapturer createLocalVideoCapturer() {

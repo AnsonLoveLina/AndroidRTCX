@@ -35,13 +35,11 @@ public class SocketService extends Service {
     }
 
     public static void startService(Context context){
-        EventBus.getDefault().register(context);
         Intent intent = new Intent(context,SocketService.class);
         context.startService(intent);
     }
 
     public static void stopService(Context context){
-        EventBus.getDefault().unregister(context);
         Intent intent = new Intent(context,SocketService.class);
         context.stopService(intent);
     }
@@ -70,6 +68,7 @@ public class SocketService extends Service {
         userCustomer = new SocketIOClient.Customer("user", userId);
         SocketIOClientUtil.addGroup(groupCustomer);
         SocketIOClientUtil.setUser(userCustomer);
+        Log.i(TAG,"setUserEnd");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -142,8 +141,8 @@ public class SocketService extends Service {
 
     @Override
     public void onCreate() {
-        super.onCreate();
         register();
+        super.onCreate();
     }
 
     @Override

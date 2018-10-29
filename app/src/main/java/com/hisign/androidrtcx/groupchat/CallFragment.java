@@ -16,94 +16,93 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.hisign.androidrtcx.R;
+import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
 
 import org.webrtc.RendererCommon.ScalingType;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Fragment for call control.
  */
 public class CallFragment extends Fragment {
-  private View controlView;
-  private TextView contactView;
-  private ImageButton disconnectButton;
-  private ImageButton cameraSwitchButton;
-  private ImageButton videoScalingButton;
-  private ImageButton toggleMuteButton;
-  private TextView captureFormatText;
-  private SeekBar captureFormatSlider;
-  private ScalingType scalingType;
-  private boolean videoCallEnabled = true;
+    private View controlView;
+    private ImageButton disconnectButton;
+    private ImageButton cameraSwitchButton;
+    private ImageButton videoScalingButton;
+    private ImageButton toggleMuteButton;
+    private ScalingType scalingType;
 
-  @Override
-  public View onCreateView(
-          LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    controlView = inflater.inflate(R.layout.fragment_call, container, false);
+    @Override
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        controlView = inflater.inflate(R.layout.fragment_call, container, false);
 
-    // Create UI controls.
-    contactView = (TextView) controlView.findViewById(R.id.contact_name_call);
-    disconnectButton = (ImageButton) controlView.findViewById(R.id.button_call_disconnect);
-    cameraSwitchButton = (ImageButton) controlView.findViewById(R.id.button_call_switch_camera);
-    videoScalingButton = (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
-    toggleMuteButton = (ImageButton) controlView.findViewById(R.id.button_call_toggle_mic);
-    captureFormatText = (TextView) controlView.findViewById(R.id.capture_format_text_call);
-    captureFormatSlider = (SeekBar) controlView.findViewById(R.id.capture_format_slider_call);
+        final CallClient callClient = ((CallActivity) getActivity()).getCallClient();
 
-    // Add buttons click events.
-    disconnectButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        callEvents.onCallHangUp();
-      }
-    });
+        // Create UI controls.
+        disconnectButton = (ImageButton) controlView.findViewById(R.id.button_call_disconnect);
+        cameraSwitchButton = (ImageButton) controlView.findViewById(R.id.button_call_switch_camera);
+        videoScalingButton = (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
+        toggleMuteButton = (ImageButton) controlView.findViewById(R.id.button_call_toggle_mic);
 
-    cameraSwitchButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        callEvents.onCameraSwitch();
-      }
-    });
+        // Add buttons click events.
+        disconnectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (callClient != null) {
+                    RtcClient.release(callClient.getRoomId());
+                    getActivity().setResult(RESULT_OK);
+                    getActivity().finish();
+                }
+            }
+        });
 
-    videoScalingButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (scalingType == ScalingType.SCALE_ASPECT_FILL) {
-          videoScalingButton.setBackgroundResource(R.drawable.ic_action_full_screen);
-          scalingType = ScalingType.SCALE_ASPECT_FIT;
-        } else {
-          videoScalingButton.setBackgroundResource(R.drawable.ic_action_return_from_full_screen);
-          scalingType = ScalingType.SCALE_ASPECT_FILL;
-        }
-        callEvents.onVideoScalingSwitch(scalingType);
-      }
-    });
-    scalingType = ScalingType.SCALE_ASPECT_FILL;
+        cameraSwitchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (callClient != null) {
+                    callClient.switchCamera();
+                }
+            }
+        });
 
-    toggleMuteButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        boolean enabled = callEvents.onToggleMic();
-        toggleMuteButton.setAlpha(enabled ? 1.0f : 0.3f);
-      }
-    });
+        videoScalingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (scalingType == ScalingType.SCALE_ASPECT_FILL) {
+                    videoScalingButton.setBackgroundResource(R.mipmap.ic_action_full_screen);
+                    scalingType = ScalingType.SCALE_ASPECT_FIT;
+                } else {
+                    videoScalingButton.setBackgroundResource(R.mipmap.ic_action_return_from_full_screen);
+                    scalingType = ScalingType.SCALE_ASPECT_FILL;
+                }
+                callClient.onVideoScalingSwitch(scalingType);
+            }
+        });
+        scalingType = ScalingType.SCALE_ASPECT_FILL;
 
-    return controlView;
-  }
+        toggleMuteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (callClient != null) {
+                    callClient.toggleMic();
+                }
+            }
+        });
 
-  @Override
-  public void onStart() {
-    super.onStart();
-  }
+        return controlView;
+    }
 
-  // TODO(sakal): Replace with onAttach(Context) once we only support API level 23+.
-  @SuppressWarnings("deprecation")
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-  }
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
 }
