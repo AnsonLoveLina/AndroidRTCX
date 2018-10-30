@@ -45,6 +45,7 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
         SurfaceViewRenderer fullscreenView = findViewById(R.id.fullscreen_video_view);
         SurfaceViewRenderer pipscreenView = findViewById(R.id.pip_video_view);
         callClient = RtcClient.call(roomId, CallActivity.this, fullscreenView, pipscreenView);
+        callClient.toggleMic();
         CallFragment callFragment = new CallFragment();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.add(R.id.call_fragment_container, callFragment);
@@ -68,12 +69,12 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
 
     @Override
     public void onCallConnected(final SurfaceViewRenderer localRenderer) {
-        localRenderer.setZOrderOnTop(false);
+
     }
 
     @Override
     public void onCallJoin(final SurfaceViewRenderer remoteRenderer) {
-        remoteRenderer.setZOrderMediaOverlay(true);
+
     }
 
     @Override

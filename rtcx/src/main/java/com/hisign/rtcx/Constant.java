@@ -35,4 +35,5 @@ public class Constant {
     public static final boolean CAPTURETOTEXTURE_DEFAULT = true;
     public static final String SPEAKERPHONE_DEFAULT = "auto";
     public static final String CAMERA2_TEXTURE_ONLY_ERROR = "Camera2 only supports capturing to texture. Either disable Camera2 or enable capturing to texture in the options.";
+    public static final int EXTRA_VIDEO_BITRATE_DEFAULT = 97;
 }

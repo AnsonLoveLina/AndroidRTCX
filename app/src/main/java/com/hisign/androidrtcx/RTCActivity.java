@@ -31,6 +31,14 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     private CallClient callClient;
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        String roomId = editText.getText().toString();
+        RtcClient.release(roomId);
+        surfaceViewContainer.removeAllViews();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rtc);

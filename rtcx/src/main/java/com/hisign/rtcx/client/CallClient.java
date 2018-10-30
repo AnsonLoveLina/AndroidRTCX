@@ -118,6 +118,7 @@ public class CallClient {
 
         localRenderer.setEnableHardwareScaler(true /* enabled */);
         remoteRenderer.setEnableHardwareScaler(true /* enabled */);
+        remoteRenderer.setZOrderMediaOverlay(true);
 
         localProxyRenderer.setTarget(localRenderer);
         remoteProxyRenderer.setTarget(remoteRenderer);

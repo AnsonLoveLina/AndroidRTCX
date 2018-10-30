@@ -1242,13 +1242,13 @@ public class PeerConnectionClient {
                         reportError("Weird-looking stream: " + stream);
                         return;
                     }
+                    events.onAddRemoteStream();
                     if (stream.videoTracks.size() == 1) {
                         remoteVideoTrack = stream.videoTracks.get(0);
                         remoteVideoTrack.setEnabled(renderVideo);
                         for (VideoRenderer.Callbacks remoteRender : remoteRenders) {
                             remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
                         }
-                        events.onAddRemoteStream();
                     }
                 }
             });

@@ -99,7 +99,7 @@ public class RtcClient {
         peerConnectionParameters =
                 new PeerConnectionClient.PeerConnectionParameters(Constant.VIDEOCALL_DEFAULT,
                         tracing, videoWidth, videoHeight, 0,/*getIntParam(Constant.EXTRA_VIDEO_FPS, 0),*/
-                        Constant.STARTAUDIOBITRATEVALUE_DEFAULT, Constant.VIDEOCODEC_DEFAULT,
+                        Constant.EXTRA_VIDEO_BITRATE_DEFAULT, Constant.VIDEOCODEC_DEFAULT,
                         Constant.HWCODEC_DEFAULT,
                         Constant.FLEXFEC_DEFAULT,
                         Constant.STARTAUDIOBITRATEVALUE_DEFAULT, Constant.AUDIOCODEC_DEFAULT,
