@@ -120,8 +120,9 @@ public class CallClient {
         remoteRenderer.setEnableHardwareScaler(true /* enabled */);
         remoteRenderer.setZOrderMediaOverlay(true);
 
-        localProxyRenderer.setTarget(localRenderer);
-        remoteProxyRenderer.setTarget(remoteRenderer);
+        setSwappedFeeds(true);
+//        localProxyRenderer.setTarget(localRenderer);
+//        remoteProxyRenderer.setTarget(remoteRenderer);
         peerConnectionParameters = RtcClient.getPeerConnectionParameters();
         String roomUrl = RtcClient.getRoomUrl();
         String urlParameters = RtcClient.getUrlParameters();
