@@ -1,11 +1,12 @@
 # Android RTCX
 
 ## DEMO
-详见app模块
+详见app模块，roomId一致则可以互相通讯，目前房间人数限制只能两人
 <pre><code>
         //初始化
         RtcClient.init(getApplicationContext());
         //发起视频聊天，参数2：RtcClient.CallBack
+        //CallClient callClient = RtcClient.call(roomId,  RTCActivity.this,fullscreenView, pipscreenView);
         CallClient callClient = RtcClient.call(roomId,  RTCActivity.this);
         //结束视频聊天，并且释放资源
         RtcClient.release(roomId);
@@ -17,9 +18,10 @@
 
     初始化，默认参数
     
-- CallClient callClient = RtcClient.call(String roomId, CallBack callBack)
+- CallClient callClient = RtcClient.call(String roomId, CallBack callBack, fullscreenView, pipscreenView)
 
-    发起进入房间的动作
+    发起进入房间的动作    
+    fullscreenView和pipscreenView可以不填，则内部会new一个SurfaceViewRenderer给你，填了则用你的SurfaceViewRenderer
     
 - release(String roomId)
 
