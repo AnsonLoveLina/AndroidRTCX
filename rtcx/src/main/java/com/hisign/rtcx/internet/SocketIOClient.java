@@ -116,12 +116,12 @@ public class SocketIOClient {
         socket.connect();
     }
 
-    public void onListener(String event, Emitter.Listener listener) {
+    public Emitter onListener(String event, Emitter.Listener listener) {
         //假如还没有人注册，则警告继续
         if (status != STATUS.REGISTER) {
             Log.w(TAG, "no one registered!");
         }
-        connectedEmitter.on(event, listener);
+        return connectedEmitter.on(event, listener);
     }
 
     public void register(Collection<Customer> customers) {

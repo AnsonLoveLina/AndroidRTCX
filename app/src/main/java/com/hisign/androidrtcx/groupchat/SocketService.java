@@ -83,6 +83,7 @@ public class SocketService extends Service {
                 socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
             }
         });
+        //历史消息处理完毕之后才是实时消息
         socketIOClient.onListener(EVENT_STUFF_HISTORY, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -94,8 +95,7 @@ public class SocketService extends Service {
                     EventBus.getDefault().post(stuff);
                 }
             }
-        });
-        socketIOClient.onListener(EVENT_STUFF, new Emitter.Listener() {
+        }).on(EVENT_STUFF, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
