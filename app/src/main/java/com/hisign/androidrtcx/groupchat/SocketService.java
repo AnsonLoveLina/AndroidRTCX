@@ -1,14 +1,17 @@
 package com.hisign.androidrtcx.groupchat;
 
+import android.app.Notification;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
+import com.hisign.androidrtcx.IMyAidlInterface;
 import com.hisign.androidrtcx.R;
 import com.hisign.rtcx.internet.SocketIOClient;
 import com.hisign.androidrtcx.groupchat.pj.Stuff;
@@ -35,13 +38,13 @@ public class SocketService extends Service {
     public SocketService() {
     }
 
-    public static void startService(Context context){
-        Intent intent = new Intent(context,SocketService.class);
+    public static void startService(Context context) {
+        Intent intent = new Intent(context, SocketService.class);
         context.startService(intent);
     }
 
-    public static void stopService(Context context){
-        Intent intent = new Intent(context,SocketService.class);
+    public static void stopService(Context context) {
+        Intent intent = new Intent(context, SocketService.class);
         context.stopService(intent);
     }
 
@@ -69,7 +72,7 @@ public class SocketService extends Service {
         userCustomer = new SocketIOClient.Customer("user", userId);
         SocketIOClientUtil.addGroup(groupCustomer);
         SocketIOClientUtil.setUser(userCustomer);
-        Log.i(TAG,"setUserEnd");
+        Log.i(TAG, "setUserEnd");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -142,15 +145,33 @@ public class SocketService extends Service {
 
     @Override
     public void onCreate() {
-        register();
         super.onCreate();
+        register();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        return super.onStartCommand(intent, flags, startId);
+        startForeground(1, new Notification());
+        bindService(new Intent(this, PSocketService.class), pServiceConnection, Context.BIND_IMPORTANT);
         return START_STICKY;
     }
+
+    private ServiceConnection pServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            //链接上
+            Log.d(TAG, "SocketService:建立链接");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            //断开链接
+            startService(new Intent(SocketService.this, PSocketService.class));
+            //重新绑定
+            bindService(new Intent(SocketService.this, PSocketService.class),
+                    pServiceConnection, Context.BIND_IMPORTANT);
+        }
+    };
 
     @Override
     public void onDestroy() {
@@ -160,7 +181,7 @@ public class SocketService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new IMyAidlInterface.Stub() {
+        };
     }
 }

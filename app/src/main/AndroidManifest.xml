@@ -42,6 +42,10 @@
         <service
             android:name=".groupchat.SocketService"
             android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".groupchat.PSocketService"
+            android:enabled="true"
             android:exported="true"></service>
     </application>
 
