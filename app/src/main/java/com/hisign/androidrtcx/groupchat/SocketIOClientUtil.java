@@ -14,7 +14,7 @@ public class SocketIOClientUtil {
     private static Set<SocketIOClient.Customer> groups = new HashSet<>();
 
     public static SocketIOClient getInstance(String socketUrl) {
-        if (socketIOClient == null && socketUrl != null) {
+        if (socketIOClient == null || socketUrl != null) {
             socketIOClient = new SocketIOClient(socketUrl);
         }
         return socketIOClient;

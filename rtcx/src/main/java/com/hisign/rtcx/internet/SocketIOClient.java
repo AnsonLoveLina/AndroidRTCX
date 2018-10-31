@@ -25,9 +25,10 @@ public class SocketIOClient {
     public static final String EVENT_UNREGISTER = "unRegister";
     public static final String EVENT_BROADCASTINFO = "broadcastInfo";
     public static final String EVENT_INFO = "info";
+    private Emitter connectedEmitter;
 
     enum STATUS {
-        READY, CONNECT, REGISTER, UNREGISTER, CLOSE
+        CONNECT, REGISTER, UNREGISTER, CLOSE
     }
 
     private STATUS status = STATUS.CLOSE;
@@ -92,7 +93,6 @@ public class SocketIOClient {
             Customer customer = new Customer(customerType, customerId);
             addCustomers(customer);
         }
-        status = STATUS.READY;
     }
 
     public void connection() {
@@ -121,13 +121,13 @@ public class SocketIOClient {
         if (status != STATUS.REGISTER) {
             Log.w(TAG, "no one registered!");
         }
-        socket.on(event, listener);
+        connectedEmitter.on(event, listener);
     }
 
     public void register(Collection<Customer> customers) {
         //假如链接尚未成功则报错返回
-        if (status != STATUS.CONNECT) {
-            Log.e(TAG, "socketIO not connected!");
+        if (status.ordinal() > STATUS.REGISTER.ordinal()) {
+            Log.e(TAG, "status: " + status + ",register error,socketIO not connected!");
             return;
         }
         for (Customer customer : customers) {
@@ -162,8 +162,8 @@ public class SocketIOClient {
     }
 
     public void send(String event, String customer, Object object) {
-        if (!(status == STATUS.CONNECT || status == STATUS.REGISTER)) {
-            Log.e(TAG, "socketIO not connected!");
+        if (status.ordinal() > STATUS.REGISTER.ordinal()) {
+            Log.e(TAG, "status: " + status + ",send error,socketIO not connected!");
             return;
         }
         JSONObject jsonObject = new JSONObject();
@@ -180,8 +180,7 @@ public class SocketIOClient {
     public void onConnection(Emitter.Listener listener) {
         Log.i(TAG, "socketIO is connected!");
         status = STATUS.CONNECT;
-        socket.on(Socket.EVENT_CONNECT, listener);
-        socket.on(Socket.EVENT_RECONNECT, listener);
+        connectedEmitter = socket.on(Socket.EVENT_CONNECT, listener);
     }
 
     public Customer getUserCustomer() {

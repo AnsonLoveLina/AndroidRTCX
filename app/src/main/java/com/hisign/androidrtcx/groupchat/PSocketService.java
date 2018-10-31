@@ -46,6 +46,7 @@ public class PSocketService extends Service {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.d(TAG, "SocketService:链接失效");
             //断开链接
             startService(new Intent(PSocketService.this, SocketService.class));
             bindService(new Intent(PSocketService.this, SocketService.class),

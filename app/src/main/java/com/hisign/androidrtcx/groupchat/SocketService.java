@@ -73,71 +73,71 @@ public class SocketService extends Service {
         SocketIOClientUtil.addGroup(groupCustomer);
         SocketIOClientUtil.setUser(userCustomer);
         Log.i(TAG, "setUserEnd");
-        new Thread(new Runnable() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+        socketIOClient.connection();
+        socketIOClient.onConnection(new Emitter.Listener() {
             @Override
-            public void run() {
-                socketIOClient.connection();
-                socketIOClient.onConnection(new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
-                        socketIOClient.onListener(EVENT_STUFF_HISTORY, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(EVENT_STUFF, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    stuff.setType(Stuff.StuffType.TYPE_RECEIVE);
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(EVENT_CALL_USER, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                for (Object object : args) {
-                                    Stuff stuff = parseObject(object);
-                                    if (stuff == null) {
-                                        return;
-                                    }
-                                    EventBus.getDefault().post(stuff);
-                                }
-                            }
-                        });
-                        socketIOClient.onListener(SocketIOClient.EVENT_INFO, new Emitter.Listener() {
-                            @Override
-                            public void call(Object... args) {
-                                Log.i(TAG, args[0].toString());
-                            }
-                        });
-                    }
-                });
+            public void call(Object... args) {
+                socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
             }
-        }).start();
+        });
+        socketIOClient.onListener(EVENT_STUFF_HISTORY, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                for (Object object : args) {
+                    Stuff stuff = parseObject(object);
+                    if (stuff == null) {
+                        return;
+                    }
+                    EventBus.getDefault().post(stuff);
+                }
+            }
+        });
+        socketIOClient.onListener(EVENT_STUFF, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                for (Object object : args) {
+                    Stuff stuff = parseObject(object);
+                    if (stuff == null) {
+                        return;
+                    }
+                    stuff.setType(Stuff.StuffType.TYPE_RECEIVE);
+                    EventBus.getDefault().post(stuff);
+                }
+            }
+        });
+        socketIOClient.onListener(EVENT_CALL_USER, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                for (Object object : args) {
+                    Stuff stuff = parseObject(object);
+                    if (stuff == null) {
+                        return;
+                    }
+                    EventBus.getDefault().post(stuff);
+                }
+            }
+        });
+        socketIOClient.onListener(SocketIOClient.EVENT_INFO, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.i(TAG, args[0].toString());
+            }
+        });
+//            }
+//        }).start();
 
     }
 
     private void unRegister() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                socketIOClient.unRegister(groupCustomer);
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+        socketIOClient.unRegister(groupCustomer);
+//            }
+//        }).start();
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
@@ -165,6 +165,7 @@ public class SocketService extends Service {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.d(TAG, "SocketService:链接失效");
             //断开链接
             startService(new Intent(SocketService.this, PSocketService.class));
             //重新绑定
@@ -177,6 +178,7 @@ public class SocketService extends Service {
     public void onDestroy() {
         super.onDestroy();
         unRegister();
+        Log.d(TAG, "socketservice destory!");
     }
 
     @Override
