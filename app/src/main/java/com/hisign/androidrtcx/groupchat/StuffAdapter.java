@@ -11,8 +11,8 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.hisign.androidrtcx.R;
-import com.hisign.rtcx.internet.SocketIOClient;
 import com.hisign.androidrtcx.groupchat.pj.Stuff;
+import com.hisign.broadcastx.socket.SocketIOClient;
 
 import java.util.List;
 

@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,10 +14,10 @@ import android.widget.EditText;
 
 import com.alibaba.fastjson.JSON;
 import com.hisign.androidrtcx.R;
-import com.hisign.androidrtcx.RTCActivity;
+import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.socket.SocketIOClient;
+import com.hisign.broadcastx.socket.SocketIOClientUtil;
 import com.hisign.rtcx.Constant;
-import com.hisign.rtcx.client.RtcClient;
-import com.hisign.rtcx.internet.SocketIOClient;
 import com.hisign.androidrtcx.groupchat.pj.Stuff;
 
 import org.greenrobot.eventbus.EventBus;
@@ -27,16 +26,15 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import jodd.util.StringUtil;
 import pub.devrel.easypermissions.EasyPermissions;
 import pub.devrel.easypermissions.PermissionRequest;
 
+import static com.hisign.androidrtcx.groupchat.pj.Stuff.StuffEvent.TYPE_TEXT;
+
 public class GroupChatActivity extends Activity {
     private static final String TAG = "GroupChatActivity";
-
-    private static final int CONNECTION_REQUEST = 1;
 
     private List<Stuff> stuffs = new ArrayList<>();
 
@@ -91,10 +89,13 @@ public class GroupChatActivity extends Activity {
                         .build());
 
         EventBus.getDefault().register(this);
+
         socketIOClient = SocketIOClientUtil.getInstance(null);
         Log.i(TAG, "getUserStart");
         userId = SocketIOClientUtil.getUser().getCustomerId();
-        setTitle(userId + "的群聊");
+        //发送给群组
+        final String groupName = SocketIOClientUtil.getGroups().iterator().next().getCustomerId();
+        setTitle(userId + "的群：" + groupName);
         stuffRecyclerView = (RecyclerView) findViewById(R.id.stuff_recycler_view);
         //设置layoutManager
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -110,7 +111,7 @@ public class GroupChatActivity extends Activity {
             public void onClick(View view) {
                 String content = inputText.getText().toString();
                 if (StringUtil.isNotBlank(content)) {
-                    Stuff stuff = new Stuff(content, Stuff.StuffType.TYPE_SEND, SocketIOClientUtil.getUser());
+                    Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), groupName, CustomerType.GROUP, groupName, TYPE_TEXT, content);
                     addStuff(stuff);
                     sendStuff(stuff);
                     inputText.setText("");
@@ -127,12 +128,12 @@ public class GroupChatActivity extends Activity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void Event(final Stuff stuff) throws InterruptedException {
-        switch (stuff.getType()) {
+        switch (stuff.getEventName()) {
             case TYPE_CALL:
                 //延时，避免同时发起访问，造成连通问题
                 Thread.sleep(500);
                 AlertDialog dialog = new AlertDialog.Builder(this)
-                        .setTitle("通话来电").setMessage(stuff.getUserCustomer().getCustomerId() + " 来电了！")
+                        .setTitle("通话来电").setMessage(stuff.getSource() + " 来电了！")
                         .setPositiveButton("跪舔", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -141,7 +142,7 @@ public class GroupChatActivity extends Activity {
                         }).setNegativeButton("丑拒", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                final Stuff outStuff = new Stuff("丑拒！", Stuff.StuffType.TYPE_HANGUP, SocketIOClientUtil.getUser());
+                                final Stuff outStuff = new Stuff(Stuff.StuffEvent.TYPE_HANGUP, SocketIOClientUtil.getUser(),"丑拒！");
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {

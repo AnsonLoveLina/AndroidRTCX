@@ -13,8 +13,9 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
 import com.hisign.androidrtcx.IMyAidlInterface;
 import com.hisign.androidrtcx.R;
-import com.hisign.rtcx.internet.SocketIOClient;
 import com.hisign.androidrtcx.groupchat.pj.Stuff;
+import com.hisign.broadcastx.socket.SocketIOClient;
+import com.hisign.broadcastx.socket.SocketIOClientUtil;
 
 import org.greenrobot.eventbus.EventBus;
 

@@ -11,6 +11,9 @@ import android.support.v4.content.ContextCompat;
 import com.hisign.androidrtcx.groupchat.GroupChatActivity;
 import com.hisign.androidrtcx.groupchat.PSocketService;
 import com.hisign.androidrtcx.groupchat.SocketService;
+import com.hisign.androidrtcx.groupchat.http.IMService;
+import com.hisign.androidrtcx.groupchat.http.IMServiceManager;
+import com.hisign.androidrtcx.groupchat.http.RetrofitManager;
 import com.hisign.rtcx.Constant;
 import com.hisign.rtcx.client.RtcClient;
 
@@ -26,6 +29,7 @@ public class RTCXDebugApplication extends Application {
         SocketService.startService(getApplicationContext());
         PSocketService.startService(getApplicationContext());
         RtcClient.init(getApplicationContext());
+        IMServiceManager.init(getApplicationContext());
     }
 
 
