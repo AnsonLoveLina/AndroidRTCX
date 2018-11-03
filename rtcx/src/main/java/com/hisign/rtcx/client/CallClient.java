@@ -1,6 +1,5 @@
 package com.hisign.rtcx.client;
 
-import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.util.Log;
 
@@ -27,7 +26,6 @@ import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 import static org.webrtc.ContextUtils.getApplicationContext;
@@ -142,12 +140,13 @@ public class CallClient {
         //PeerConnectionEvents
         @Override
         public void onLocalDescription(final SessionDescription sdp) {
-            final long delta = System.currentTimeMillis() - callStartedTimeMs;
+            final long delay = System.currentTimeMillis() - callStartedTimeMs;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (appRtcClient != null) {
-                        Log.i(TAG, "Sending " + sdp.type + ", delay=" + delta + "ms");
+                        onCallDelay(delay);
+                        Log.i(TAG, "Sending " + sdp.type + ", delay=" + delay + "ms");
                         if (signalingParameters.initiator) {
                             appRtcClient.sendOfferSdp(sdp);
                         } else {
@@ -188,11 +187,12 @@ public class CallClient {
 
         @Override
         public void onIceConnected() {
-            final long delta = System.currentTimeMillis() - callStartedTimeMs;
+            final long delay = System.currentTimeMillis() - callStartedTimeMs;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "ICE connected, delay=" + delta + "ms");
+                    onCallDelay(delay);
+                    Log.d(TAG, "ICE connected, delay=" + delay + "ms");
                     iceConnected = true;
                 }
             });
@@ -259,12 +259,13 @@ public class CallClient {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    final long delta = System.currentTimeMillis() - callStartedTimeMs;
+                    final long delay = System.currentTimeMillis() - callStartedTimeMs;
                     if (peerConnectionClient == null) {
                         Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
                         return;
                     }
-                    Log.i(TAG, "Received remote " + sdp.type + ", delay=" + delta + "ms");
+                    onCallDelay(delay);
+                    Log.i(TAG, "Received remote " + sdp.type + ", delay=" + delay + "ms");
                     peerConnectionClient.setRemoteDescription(sdp);
                     if (!signalingParameters.initiator) {
                         Log.i(TAG, "Creating ANSWER...");
@@ -309,8 +310,7 @@ public class CallClient {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i(TAG, "Remote end hung up; dropping PeerConnection");
-                    disconnect();
+                    onCallError("Remote end hung up; dropping PeerConnection");
                 }
             });
         }
@@ -457,10 +457,11 @@ public class CallClient {
     // All callbacks are invoked from websocket signaling looper thread and
     // are routed to UI thread.
     private void onConnectedToRoomInternal(final AppRTCClient.SignalingParameters params) {
-        final long delta = System.currentTimeMillis() - callStartedTimeMs;
+        final long delay = System.currentTimeMillis() - callStartedTimeMs;
 
         signalingParameters = params;
-        Log.i(TAG, "Creating peer connection, delay=" + delta + "ms");
+        onCallDelay(delay);
+        Log.i(TAG, "Creating peer connection, delay=" + delay + "ms");
         VideoCapturer videoCapturer = null;
         if (peerConnectionParameters.videoCallEnabled) {
             videoCapturer = createLocalVideoCapturer();
@@ -516,7 +517,7 @@ public class CallClient {
             try {
                 videoCapturer = new FileVideoCapturer(videoFileAsCamera);
             } catch (IOException e) {
-                Log.e(TAG, "Failed to open video file for emulated camera");
+                onCallError("Failed to open video file for emulated camera");
                 return null;
             }
 //        } else if (screencaptureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -534,7 +535,7 @@ public class CallClient {
             videoCapturer = createCameraCapturer(new Camera1Enumerator(captureToTexture()));
         }
         if (videoCapturer == null) {
-            Log.e(TAG, "Failed to open camera");
+            onCallError("Failed to open camera");
             return null;
         }
         return videoCapturer;
@@ -580,6 +581,10 @@ public class CallClient {
         return null;
     }
 
+    private void onCallDelay(long delay) {
+        callBack.onCallMsg(delay);
+    }
+
     private void onCallError(final String error) {
         runOnUiThread(new Runnable() {
             @Override
@@ -587,6 +592,7 @@ public class CallClient {
                 if (!isError) {
                     isError = true;
                     callBack.onCallError(error);
+                    disconnect();
                 }
             }
         });
@@ -612,8 +618,9 @@ public class CallClient {
 
     // Should be called from UI thread
     private void callConnected() {
-        final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        Log.i(TAG, "Call connected: delay=" + delta + "ms");
+        final long delay = System.currentTimeMillis() - callStartedTimeMs;
+        onCallDelay(delay);
+        Log.i(TAG, "Call connected: delay=" + delay + "ms");
         if (peerConnectionClient == null || isError) {
             Log.w(TAG, "Call is connected in closed or error state");
             return;

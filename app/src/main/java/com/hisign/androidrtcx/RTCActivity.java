@@ -33,8 +33,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        String roomId = editText.getText().toString();
-        RtcClient.release(roomId);
+        RtcClient.release();
         surfaceViewContainer.removeAllViews();
     }
 
@@ -62,8 +61,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
 
             @Override
             public void onClick(View view) {
-                String roomId = editText.getText().toString();
-                RtcClient.release(roomId);
+                RtcClient.release();
                 surfaceViewContainer.removeAllViews();
             }
         });
@@ -104,6 +102,11 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     @Override
     public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
         finish();
+    }
+
+    @Override
+    public void onCallMsg(Object msg) {
+
     }
 
     @Override

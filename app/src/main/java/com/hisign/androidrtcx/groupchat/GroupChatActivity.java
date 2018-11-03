@@ -13,12 +13,15 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import com.hisign.androidrtcx.R;
+import com.hisign.androidrtcx.common.EventBusManager;
+import com.hisign.androidrtcx.groupchat.http.IMServiceManager;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 import com.hisign.rtcx.Constant;
-import com.hisign.androidrtcx.groupchat.pj.Stuff;
+import com.hisign.broadcastx.pj.Stuff;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -26,12 +29,14 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import jodd.util.StringUtil;
 import pub.devrel.easypermissions.EasyPermissions;
 import pub.devrel.easypermissions.PermissionRequest;
 
-import static com.hisign.androidrtcx.groupchat.pj.Stuff.StuffEvent.TYPE_TEXT;
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_HANGUP;
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_TEXT;
 
 public class GroupChatActivity extends Activity {
     private static final String TAG = "GroupChatActivity";
@@ -50,19 +55,12 @@ public class GroupChatActivity extends Activity {
 
     private SocketIOClient socketIOClient;
 
-    public static final String EVENT_STUFF = "STUFF";
-
-    public static final String EVENT_STUFF_HISTORY = "STUFF_HISTORY";
-
-    public static final String EVENT_CALL_USER = "CALLUSER";
-    public static final String EVENT_HANGUP_USER = "HANGUPUSER";
-
     private void sendStuff(final Stuff stuff) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 for (SocketIOClient.Customer group : SocketIOClientUtil.getGroups()) {
-                    SocketIOClientUtil.getInstance(null).send(EVENT_STUFF, group.getCustomerId(), JSON.toJSONString(stuff));
+                    SocketIOClientUtil.getInstance(null).send(TYPE_TEXT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff));
                 }
             }
         }).start();
@@ -88,7 +86,12 @@ public class GroupChatActivity extends Activity {
                 new PermissionRequest.Builder(GroupChatActivity.this, PERMISSION_REQUEST_CODE, Constant.MANDATORY_PERMISSIONS)
                         .build());
 
-        EventBus.getDefault().register(this);
+        Map<String,String> params = Maps.newHashMap();
+        params.put("roomName","110");
+        params.put("eventName",TYPE_TEXT.getEventName());
+        IMServiceManager.getInstance().stuffHistory(params);
+
+        EventBusManager.getEventBus().register(this);
 
         socketIOClient = SocketIOClientUtil.getInstance(null);
         Log.i(TAG, "getUserStart");
@@ -123,7 +126,7 @@ public class GroupChatActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        EventBus.getDefault().unregister(this);
+        EventBusManager.getEventBus().unregister(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -137,16 +140,16 @@ public class GroupChatActivity extends Activity {
                         .setPositiveButton("跪舔", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                CallActivity.startAction(GroupChatActivity.this, stuff.getContent() == null ? userId : stuff.getContent());
+                                CallActivity.startAction(GroupChatActivity.this, stuff.getSource() == null ? userId : stuff.getSource());
                             }
                         }).setNegativeButton("丑拒", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                final Stuff outStuff = new Stuff(Stuff.StuffEvent.TYPE_HANGUP, SocketIOClientUtil.getUser(),"丑拒！");
+                                final Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), TYPE_HANGUP, "丑拒！");
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        socketIOClient.send(EVENT_HANGUP_USER, stuff.getUserCustomer().getCustomerId(), JSON.toJSONString(outStuff));
+                                        socketIOClient.send(TYPE_HANGUP.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
                                     }
                                 }).start();
                             }
@@ -155,7 +158,7 @@ public class GroupChatActivity extends Activity {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.GREEN);
                 dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.RED);
                 break;
-            default:
+            case TYPE_TEXT:
                 addStuff(stuff);
                 break;
         }
@@ -167,7 +170,9 @@ public class GroupChatActivity extends Activity {
 
     public void addStuff(Stuff sourceStuff) {
         stuffs.add(sourceStuff);
-        stuffAdapter.notifyItemInserted(stuffs.size() - 1);
-        stuffRecyclerView.scrollToPosition(stuffs.size() - 1);
+        if (stuffAdapter != null) {
+            stuffAdapter.notifyItemInserted(stuffs.size() - 1);
+            stuffRecyclerView.scrollToPosition(stuffs.size() - 1);
+        }
     }
 }

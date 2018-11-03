@@ -13,7 +13,9 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
 import com.hisign.androidrtcx.IMyAidlInterface;
 import com.hisign.androidrtcx.R;
-import com.hisign.androidrtcx.groupchat.pj.Stuff;
+import com.hisign.androidrtcx.common.EventBusManager;
+import com.hisign.broadcastx.pj.Stuff;
+import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 
@@ -23,9 +25,9 @@ import java.util.Random;
 
 import io.socket.emitter.Emitter;
 
-import static com.hisign.androidrtcx.groupchat.GroupChatActivity.EVENT_CALL_USER;
-import static com.hisign.androidrtcx.groupchat.GroupChatActivity.EVENT_STUFF;
-import static com.hisign.androidrtcx.groupchat.GroupChatActivity.EVENT_STUFF_HISTORY;
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_CALL;
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_HANGUP;
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_TEXT;
 
 public class SocketService extends Service {
     private static final String TAG = "SocketService";
@@ -65,12 +67,12 @@ public class SocketService extends Service {
         return stuff;
     }
 
-    private void register() {
+    private void socketConnect() {
         String userId = Integer.toString((new Random()).nextInt(100000000));
         //ExecutorService executor = Executors.newSingleThreadExecutor();
         socketIOClient = SocketIOClientUtil.getInstance(getString(R.string.chat_socketio_url_default));
-        groupCustomer = new SocketIOClient.Customer("group", "110");
-        userCustomer = new SocketIOClient.Customer("user", userId);
+        groupCustomer = new SocketIOClient.Customer(CustomerType.GROUP, "110");
+        userCustomer = new SocketIOClient.Customer(CustomerType.USER, userId);
         SocketIOClientUtil.addGroup(groupCustomer);
         SocketIOClientUtil.setUser(userCustomer);
         Log.i(TAG, "setUserEnd");
@@ -84,8 +86,8 @@ public class SocketService extends Service {
                 socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
             }
         });
-        //历史消息处理完毕之后才是实时消息
-        socketIOClient.onListener(EVENT_STUFF_HISTORY, new Emitter.Listener() {
+        final EventBus defaultEB = EventBusManager.getEventBus();
+        socketIOClient.onListener(TYPE_TEXT.getEventName(), new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
@@ -93,23 +95,11 @@ public class SocketService extends Service {
                     if (stuff == null) {
                         return;
                     }
-                    EventBus.getDefault().post(stuff);
-                }
-            }
-        }).on(EVENT_STUFF, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                for (Object object : args) {
-                    Stuff stuff = parseObject(object);
-                    if (stuff == null) {
-                        return;
-                    }
-                    stuff.setType(Stuff.StuffType.TYPE_RECEIVE);
-                    EventBus.getDefault().post(stuff);
+                    defaultEB.post(stuff);
                 }
             }
         });
-        socketIOClient.onListener(EVENT_CALL_USER, new Emitter.Listener() {
+        socketIOClient.onListener(TYPE_CALL.getEventName(), new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
@@ -117,7 +107,20 @@ public class SocketService extends Service {
                     if (stuff == null) {
                         return;
                     }
-                    EventBus.getDefault().post(stuff);
+                    defaultEB.post(stuff);
+                }
+            }
+        });
+        final EventBus hangupEB = EventBusManager.getEventBus(TYPE_HANGUP.getEventName());
+        socketIOClient.onListener(TYPE_HANGUP.getEventName(), new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                for (Object object : args) {
+                    Stuff stuff = parseObject(object);
+                    if (stuff == null) {
+                        return;
+                    }
+                    hangupEB.post(stuff);
                 }
             }
         });
@@ -132,22 +135,10 @@ public class SocketService extends Service {
 
     }
 
-    private void unRegister() {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-        socketIOClient.unRegister(groupCustomer);
-//            }
-//        }).start();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
-        register();
+        socketConnect();
     }
 
     @Override
@@ -178,7 +169,6 @@ public class SocketService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unRegister();
         Log.d(TAG, "socketservice destory!");
     }
 

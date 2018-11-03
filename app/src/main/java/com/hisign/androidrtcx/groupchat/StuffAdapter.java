@@ -1,5 +1,6 @@
 package com.hisign.androidrtcx.groupchat;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,10 +12,14 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.hisign.androidrtcx.R;
-import com.hisign.androidrtcx.groupchat.pj.Stuff;
+import com.hisign.broadcastx.pj.Stuff;
+import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.SocketIOClient;
+import com.hisign.broadcastx.socket.SocketIOClientUtil;
 
 import java.util.List;
+
+import static com.hisign.broadcastx.pj.StuffEvent.TYPE_CALL;
 
 public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> {
 
@@ -40,9 +45,9 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
 
     private List<Stuff> sutffs;
     private SocketIOClient socketIOClient;
-    private final Context context;
+    private final Activity context;
 
-    public StuffAdapter(List<Stuff> sutffs, SocketIOClient socketIOClient, Context context) {
+    public StuffAdapter(List<Stuff> sutffs, SocketIOClient socketIOClient, Activity context) {
         this.sutffs = sutffs;
         this.socketIOClient = socketIOClient;
         this.context = context;
@@ -57,28 +62,28 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(StuffAdapter.ViewHolder holder, int position) {
         final Stuff stuff = sutffs.get(position);
-        if (stuff.getType() == Stuff.StuffType.TYPE_RECEIVE) {
+        if (!stuff.isOwn(SocketIOClientUtil.getUser().getCustomerId())) {
             holder.leftImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            Stuff outStuff = new Stuff(stuff.getUserCustomer().getCustomerId(), Stuff.StuffType.TYPE_CALL, socketIOClient.getUserCustomer());
-                            socketIOClient.send(GroupChatActivity.EVENT_CALL_USER, stuff.getUserCustomer().getCustomerId(), JSON.toJSONString(outStuff));
+                            Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), TYPE_CALL, "");
+                            socketIOClient.send(TYPE_CALL.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
                         }
                     }).start();
 
-                    CallActivity.startAction(context, stuff.getUserCustomer().getCustomerId());
+                    CallActivity.startAction(context, SocketIOClientUtil.getUser().getCustomerId());
                 }
             });
             holder.leftLayout.setVisibility(View.VISIBLE);
             holder.rightLayout.setVisibility(View.GONE);
-            holder.leftText.setText(stuff.getContent());
-        } else if (stuff.getType() == Stuff.StuffType.TYPE_SEND) {
+            holder.leftText.setText(stuff.getContext());
+        } else {
             holder.leftLayout.setVisibility(View.GONE);
             holder.rightLayout.setVisibility(View.VISIBLE);
-            holder.rightText.setText(stuff.getContent());
+            holder.rightText.setText(stuff.getContext());
         }
     }
 

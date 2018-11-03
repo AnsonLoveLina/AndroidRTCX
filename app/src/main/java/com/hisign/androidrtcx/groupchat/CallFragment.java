@@ -22,9 +22,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.hisign.androidrtcx.R;
+import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.webrtc.RendererCommon.ScalingType;
 
 import static android.app.Activity.RESULT_OK;
@@ -58,7 +61,7 @@ public class CallFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (callClient != null) {
-                    RtcClient.release(callClient.getRoomId());
+                    RtcClient.release();
                     getActivity().setResult(RESULT_OK);
                     getActivity().finish();
                 }

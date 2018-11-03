@@ -45,6 +45,8 @@ public class RtcClient {
     }
 
     public interface CallBack {
+        void onCallMsg(Object msg);
+
         void onCallError(String error);
 
         void onCallConnected(SurfaceViewRenderer localRenderer);
@@ -54,27 +56,23 @@ public class RtcClient {
         void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices);
     }
 
-    private static Map<String, CallClient> callClientMap = Maps.newHashMap();
+    private static CallClient callClient;
 
     public static CallClient call(String roomId, CallBack callBack, SurfaceViewRenderer... screenViews) {
-        CallClient callClient = new CallClient(roomId, callBack, screenViews);
+        callClient = new CallClient(roomId, callBack, screenViews);
         callClient.call();
-        callClientMap.put(roomId, callClient);
         return callClient;
     }
 
-    public static void release(String roomId) {
-        CallClient callClient = callClientMap.get(roomId);
-        if (callClient != null) {
-            callClient.stopCall();
-            callClient.disconnect();
-            callClient = null;
-            releaseRtcClient(roomId);
-        }
+    public static void release() {
+        callClient.stopCall();
+        callClient.disconnect();
     }
 
-    public static void releaseRtcClient(String roomId) {
-        callClientMap.remove(roomId);
+    @Deprecated
+    public static void release(String roomId) {
+        callClient.stopCall();
+        callClient.disconnect();
     }
 
     private static void setDefParams() {
