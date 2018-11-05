@@ -12,5 +12,5 @@ import rx.Observable;
 
 public interface IMService {
     @GET("stuff/stuffHistory")
-    Observable<BaseIMResponse<List<Stuff>>> stuffHistory(@QueryMap Map<String, String> maps);
+    Observable<BaseIMResponse<List<Stuff>>> stuffHistory(@QueryMap Map<String, Object> maps);
 }

@@ -25,9 +25,9 @@ import java.util.Random;
 
 import io.socket.emitter.Emitter;
 
-import static com.hisign.broadcastx.pj.StuffEvent.TYPE_CALL;
-import static com.hisign.broadcastx.pj.StuffEvent.TYPE_HANGUP;
-import static com.hisign.broadcastx.pj.StuffEvent.TYPE_TEXT;
+import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
+import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
+import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
 
 public class SocketService extends Service {
     private static final String TAG = "SocketService";
@@ -87,7 +87,7 @@ public class SocketService extends Service {
             }
         });
         final EventBus defaultEB = EventBusManager.getEventBus();
-        socketIOClient.onListener(TYPE_TEXT.getEventName(), new Emitter.Listener() {
+        socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
@@ -99,7 +99,7 @@ public class SocketService extends Service {
                 }
             }
         });
-        socketIOClient.onListener(TYPE_CALL.getEventName(), new Emitter.Listener() {
+        socketIOClient.onListener(CALL_EVENT.getEventName(), new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
@@ -111,8 +111,8 @@ public class SocketService extends Service {
                 }
             }
         });
-        final EventBus hangupEB = EventBusManager.getEventBus(TYPE_HANGUP.getEventName());
-        socketIOClient.onListener(TYPE_HANGUP.getEventName(), new Emitter.Listener() {
+        final EventBus hangupEB = EventBusManager.getEventBus(HANGUP_EVENT.getEventName());
+        socketIOClient.onListener(HANGUP_EVENT.getEventName(), new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {

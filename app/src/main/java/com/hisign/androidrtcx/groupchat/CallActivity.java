@@ -2,17 +2,10 @@ package com.hisign.androidrtcx.groupchat;
 
 import android.app.Activity;
 import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.hisign.androidrtcx.R;
@@ -22,7 +15,6 @@ import com.hisign.rtcx.AppRTCAudioManager;
 import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.webrtc.SurfaceViewRenderer;
@@ -30,7 +22,7 @@ import org.webrtc.SurfaceViewRenderer;
 import java.util.Set;
 
 import static com.hisign.androidrtcx.groupchat.Constant.CALLREQUEST;
-import static com.hisign.broadcastx.pj.StuffEvent.TYPE_HANGUP;
+import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
 
 public class CallActivity extends Activity implements RtcClient.CallBack {
     private static final String TAG = CallActivity.class.getSimpleName();
@@ -48,7 +40,7 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void Event(final Stuff stuff) throws InterruptedException {
         switch (stuff.getEventName()) {
-            case TYPE_HANGUP:
+            case HANGUP_EVENT:
                 RtcClient.release();
                 setResult(RESULT_OK);
                 finish();
@@ -59,7 +51,7 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_call);
-        EventBusManager.getEventBus(TYPE_HANGUP.getEventName()).register(this);
+        EventBusManager.getEventBus(HANGUP_EVENT.getEventName()).register(this);
         Intent intent = this.getIntent();
         final String roomId = intent.getStringExtra("roomId");
         SurfaceViewRenderer fullscreenView = findViewById(R.id.fullscreen_video_view);
@@ -83,7 +75,7 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     protected void onDestroy() {
         RtcClient.release();
         super.onDestroy();
-        EventBusManager.getEventBus(TYPE_HANGUP.getEventName()).unregister(this);
+        EventBusManager.getEventBus(HANGUP_EVENT.getEventName()).unregister(this);
     }
 
     @Override

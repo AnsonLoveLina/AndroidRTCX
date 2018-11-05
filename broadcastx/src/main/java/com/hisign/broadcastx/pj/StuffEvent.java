@@ -1,7 +1,10 @@
 package com.hisign.broadcastx.pj;
 
+/**
+ * 后台存到是fieldName而非stringValue
+ */
 public enum StuffEvent {
-    TYPE_TEXT("textEvent"), TYPE_CALL("call"), TYPE_HANGUP("hangup");
+    TEXT_EVENT("textEvent"), CALL_EVENT("callEvent"), HANGUP_EVENT("hangupEvent");
     private String eventName;
 
     StuffEvent(String eventName) {

@@ -1,7 +1,6 @@
 package com.hisign.androidrtcx.groupchat;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +18,7 @@ import com.hisign.broadcastx.socket.SocketIOClientUtil;
 
 import java.util.List;
 
-import static com.hisign.broadcastx.pj.StuffEvent.TYPE_CALL;
+import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 
 public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> {
 
@@ -69,8 +68,8 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), TYPE_CALL, "");
-                            socketIOClient.send(TYPE_CALL.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
+                            Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), CALL_EVENT, "");
+                            socketIOClient.send(CALL_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
                         }
                     }).start();
 

@@ -2,14 +2,13 @@ package com.hisign.broadcastx.pj;
 
 
 import com.hisign.broadcastx.CustomerType;
-import com.hisign.broadcastx.socket.SocketIOClient;
 
 import java.util.Date;
 
 import jodd.util.StringUtil;
 
 public class Stuff {
-    private String pkId;
+    private String id;
     private String source;
     private Date sourceCreateTime;
     private String target;
@@ -86,8 +85,8 @@ public class Stuff {
         this.context = context;
     }
 
-    public String getPkId() {
-        return pkId;
+    public String getId() {
+        return id;
     }
 
     public Date getSourceCreateTime() {

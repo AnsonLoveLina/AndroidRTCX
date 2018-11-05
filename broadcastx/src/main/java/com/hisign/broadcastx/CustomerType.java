@@ -1,5 +1,8 @@
 package com.hisign.broadcastx;
 
+/**
+ * 后台存到是fieldName而非stringValue
+ */
 public enum CustomerType {
     USER("user"),GROUP("group");
     private String customerType;

@@ -1,6 +1,7 @@
 package com.hisign.broadcastx.socket;
 
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +46,7 @@ public class SocketIOClient {
         }
 
         public Customer(CustomerType customerType, String customerId) {
-            if (customerType!=null || StringUtil.isBlank(customerId)) {
+            if (customerType != null || StringUtil.isBlank(customerId)) {
                 logger.info("customerType or customerId is blank!");
             }
             this.customerType = customerType;
