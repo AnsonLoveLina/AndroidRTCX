@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api ('org.jodd:jodd-core:3.6.6')
+    api ('io.socket:socket.io-client:1.0.0')
+    api ('io.socket:engine.io-client:1.0.0')
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"

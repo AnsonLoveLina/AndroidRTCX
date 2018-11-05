@@ -1,1 +1,1 @@
-include ':app', ':rtcx', ':broadcastx', ':broadcastx', ':broadcastx'
+include ':app', ':rtcx', ':broadcastx'
