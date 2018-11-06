@@ -42,6 +42,7 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+import static com.hisign.broadcastx.CustomerType.GROUP;
 import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
 
@@ -111,7 +112,7 @@ public class GroupChatActivity extends Activity {
             public void onClick(View view) {
                 String content = inputText.getText().toString();
                 if (StringUtil.isNotBlank(content)) {
-                    Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), groupName, CustomerType.GROUP, groupName, TEXT_EVENT, content);
+                    Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), groupName, GROUP, groupName, TEXT_EVENT, content);
                     addStuff(stuff);
                     sendStuff(stuff);
                     inputText.setText("");
@@ -121,7 +122,8 @@ public class GroupChatActivity extends Activity {
 
         //界面完成则开始历史消息
         Map<String, Object> params = Maps.newHashMap();
-        params.put("roomName", "110");
+        params.put("target", "110");
+        params.put("targetType", GROUP);
         params.put("eventName", TEXT_EVENT);
         IMServiceManager.getInstance().stuffHistory(params)
                 .subscribeOn(Schedulers.io())
