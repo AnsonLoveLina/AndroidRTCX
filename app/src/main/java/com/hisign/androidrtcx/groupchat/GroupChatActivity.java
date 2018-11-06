@@ -149,8 +149,8 @@ public class GroupChatActivity extends Activity {
                             showMsg("获取历史消息错误：" + listBaseIMResponse.getErr());
                         } else if (listBaseIMResponse.getResCode() == 0) {
                             List<Stuff> stuffs = listBaseIMResponse.getResult();
-                            for (int index = stuffs.size(); index < 0; index--) {
-                                addStuff(stuffs.get(index));
+                            for (int i = stuffs.size() - 1; i > -1; i--) {
+                                addStuff(stuffs.get(i));
                             }
 
                         }
@@ -162,7 +162,7 @@ public class GroupChatActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (EventBusManager.getEventBus().isRegistered(GroupChatActivity.this)) {
-            EventBusManager.getEventBus().register(GroupChatActivity.this);
+            EventBusManager.getEventBus().unregister(GroupChatActivity.this);
         }
     }
 
