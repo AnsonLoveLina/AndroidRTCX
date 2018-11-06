@@ -131,7 +131,8 @@ public class GroupChatActivity extends Activity {
                 .subscribe(new Subscriber<BaseIMResponse<List<Stuff>>>() {
                     @Override
                     public void onCompleted() {
-                        //历史消息完成，则开始注册监听，接收消息
+                        //历史消息完成，则开始注册监听，接收消息。
+                        //toDo:请求历史消息过程中，接收消息，准备用EventBus的sticky
                         if (!EventBusManager.getEventBus().isRegistered(GroupChatActivity.this)) {
                             EventBusManager.getEventBus().register(GroupChatActivity.this);
                         }
