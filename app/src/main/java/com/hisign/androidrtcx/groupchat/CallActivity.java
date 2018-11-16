@@ -14,6 +14,7 @@ import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.rtcx.AppRTCAudioManager;
 import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
+import com.hisign.rtcx.exception.RTCXException;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -109,9 +110,9 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     }
 
     @Override
-    public void onCallError(String error) {
-        Log.e(TAG, error);
-        setResult(RESULT_CANCELED, new Intent(error));
+    public void onCallError(RTCXException error) {
+        Log.e(TAG, error.getMessage());
+        setResult(RESULT_CANCELED, new Intent(error.getMessage()));
         finish();
     }
 
@@ -123,6 +124,12 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     @Override
     public void onCallJoin(final SurfaceViewRenderer remoteRenderer) {
 
+    }
+
+    @Override
+    public void onJoinCallBye() {
+        setResult(RESULT_OK, new Intent("join call say bye!"));
+        finish();
     }
 
     @Override

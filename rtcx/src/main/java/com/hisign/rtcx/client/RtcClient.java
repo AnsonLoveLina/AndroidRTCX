@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.hisign.rtcx.AppRTCAudioManager;
 import com.hisign.rtcx.Constant;
 import com.hisign.rtcx.PeerConnectionClient;
+import com.hisign.rtcx.exception.RTCXException;
 
 import org.webrtc.ContextUtils;
 import org.webrtc.SurfaceViewRenderer;
@@ -47,11 +48,13 @@ public class RtcClient {
     public interface CallBack {
         void onCallMsg(Object msg);
 
-        void onCallError(String error);
+        void onCallError(RTCXException error);
 
         void onCallConnected(SurfaceViewRenderer localRenderer);
 
         void onCallJoin(SurfaceViewRenderer remoteRenderer);
+
+        void onJoinCallBye();
 
         void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices);
     }

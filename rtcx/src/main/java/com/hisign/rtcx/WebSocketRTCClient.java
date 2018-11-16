@@ -19,6 +19,7 @@ import com.hisign.rtcx.WebSocketChannelClient.WebSocketChannelEvents;
 import com.hisign.rtcx.WebSocketChannelClient.WebSocketConnectionState;
 import com.hisign.rtcx.util.AsyncHttpURLConnection;
 import com.hisign.rtcx.util.AsyncHttpURLConnection.AsyncHttpEvents;
+import com.hisign.rtcx.util.ChannelCloseStatus;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -328,7 +329,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
             reportError("Received offer for call receiver: " + msg);
           }
         } else if (type.equals("bye")) {
-          events.onChannelClose();
+          events.onChannelClose(ChannelCloseStatus.BYE);
         } else {
           reportError("Unexpected WebSocket message: " + msg);
         }
@@ -346,7 +347,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
 
   @Override
   public void onWebSocketClose() {
-    events.onChannelClose();
+    events.onChannelClose(ChannelCloseStatus.ERROR);
   }
 
   @Override

@@ -10,10 +10,13 @@
 
 package com.hisign.rtcx;
 
+import com.hisign.rtcx.util.ChannelCloseStatus;
+
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 
+import java.nio.channels.Channel;
 import java.util.List;
 
 /**
@@ -133,7 +136,7 @@ public interface AppRTCClient {
     /**
      * Callback fired once channel is closed.
      */
-    void onChannelClose();
+    void onChannelClose(ChannelCloseStatus channelCloseStatus);
 
     /**
      * Callback fired once channel error happened.

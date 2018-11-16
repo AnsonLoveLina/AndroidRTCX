@@ -9,11 +9,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.hisign.rtcx.AppRTCAudioManager;
 import com.hisign.rtcx.Constant;
 import com.hisign.rtcx.client.CallClient;
 import com.hisign.rtcx.client.RtcClient;
+import com.hisign.rtcx.exception.RTCXException;
 
 import org.webrtc.SurfaceViewRenderer;
 
@@ -106,12 +108,17 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
 
     @Override
     public void onCallMsg(Object msg) {
-
+        if (msg.getClass() == long.class) {
+            long delayMs = (long) msg;
+            if (delayMs > 5000) {
+                Log.i(TAG,"delayMs:"+delayMs);
+            }
+        }
     }
 
     @Override
-    public void onCallError(String error) {
-        Log.e(TAG, error);
+    public void onCallError(RTCXException error) {
+        Log.e(TAG, error.getMessage());
     }
 
     @Override
@@ -126,6 +133,12 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
         remoteRenderer.setLayoutParams(layoutParams);
         surfaceViewContainer.addView(remoteRenderer);
+    }
+
+    @Override
+    public void onJoinCallBye() {
+        RtcClient.release();
+        surfaceViewContainer.removeAllViews();
     }
 
     @Override

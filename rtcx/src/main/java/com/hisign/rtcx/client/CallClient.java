@@ -9,6 +9,12 @@ import com.hisign.rtcx.AppRTCClient;
 import com.hisign.rtcx.Constant;
 import com.hisign.rtcx.PeerConnectionClient;
 import com.hisign.rtcx.WebSocketRTCClient;
+import com.hisign.rtcx.exception.ChannelCloseException;
+import com.hisign.rtcx.exception.ChannelConnectionException;
+import com.hisign.rtcx.exception.PeerConnectionException;
+import com.hisign.rtcx.exception.RTCXException;
+import com.hisign.rtcx.exception.VideoCapturerCreateException;
+import com.hisign.rtcx.util.ChannelCloseStatus;
 
 import org.webrtc.Camera1Enumerator;
 import org.webrtc.Camera2Enumerator;
@@ -237,7 +243,7 @@ public class CallClient {
 
         @Override
         public void onPeerConnectionError(String description) {
-            onCallError(description);
+            onCallError(new PeerConnectionException(description));
         }
     };
 
@@ -306,18 +312,28 @@ public class CallClient {
         }
 
         @Override
-        public void onChannelClose() {
+        public void onChannelClose(final ChannelCloseStatus channelCloseStatus) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    onCallError("Remote end hung up; dropping PeerConnection");
+                    switch (channelCloseStatus) {
+                        case BYE:
+                            callBack.onJoinCallBye();
+                            break;
+                        case ERROR:
+                            onCallError(new ChannelCloseException("Remote end hung up; dropping PeerConnection"));
+                            break;
+                        default:
+                            onCallError(new ChannelCloseException("Remote end hung up; dropping PeerConnection"));
+                            break;
+                    }
                 }
             });
         }
 
         @Override
         public void onChannelError(String description) {
-            onCallError(description);
+            onCallError(new ChannelConnectionException(description));
         }
     };
 
@@ -517,14 +533,14 @@ public class CallClient {
             try {
                 videoCapturer = new FileVideoCapturer(videoFileAsCamera);
             } catch (IOException e) {
-                onCallError("Failed to open video file for emulated camera");
+                onCallError(new VideoCapturerCreateException("Failed to open video file for emulated camera"));
                 return null;
             }
 //        } else if (screencaptureEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //            return createScreenCapturer();
         } else if (useCamera2()) {
             if (!captureToTexture()) {
-                onCallError(Constant.CAMERA2_TEXTURE_ONLY_ERROR);
+                onCallError(new VideoCapturerCreateException(Constant.CAMERA2_TEXTURE_ONLY_ERROR));
                 return null;
             }
 
@@ -535,7 +551,7 @@ public class CallClient {
             videoCapturer = createCameraCapturer(new Camera1Enumerator(captureToTexture()));
         }
         if (videoCapturer == null) {
-            onCallError("Failed to open camera");
+            onCallError(new VideoCapturerCreateException("Failed to open camera"));
             return null;
         }
         return videoCapturer;
@@ -585,7 +601,7 @@ public class CallClient {
         callBack.onCallMsg(delay);
     }
 
-    private void onCallError(final String error) {
+    private void onCallError(final RTCXException error) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
