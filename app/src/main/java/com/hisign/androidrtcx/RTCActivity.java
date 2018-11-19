@@ -136,7 +136,7 @@ public class RTCActivity extends AppCompatActivity implements RtcClient.CallBack
     }
 
     @Override
-    public void onJoinCallBye() {
+    public void onJoinCallBye(String clientId) {
         RtcClient.release();
         surfaceViewContainer.removeAllViews();
     }

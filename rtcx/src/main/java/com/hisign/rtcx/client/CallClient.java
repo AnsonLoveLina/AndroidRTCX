@@ -318,7 +318,7 @@ public class CallClient {
                 public void run() {
                     switch (channelCloseStatus) {
                         case BYE:
-                            callBack.onJoinCallBye();
+                            callBack.onJoinCallBye(null);
                             break;
                         case ERROR:
                             onCallError(new ChannelCloseException("Remote end hung up; dropping PeerConnection"));

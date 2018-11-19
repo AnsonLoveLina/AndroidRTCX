@@ -127,7 +127,7 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
     }
 
     @Override
-    public void onJoinCallBye() {
+    public void onJoinCallBye(String clientId) {
         setResult(RESULT_OK, new Intent("join call say bye!"));
         finish();
     }

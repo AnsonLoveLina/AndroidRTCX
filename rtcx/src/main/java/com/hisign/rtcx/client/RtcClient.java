@@ -54,7 +54,7 @@ public class RtcClient {
 
         void onCallJoin(SurfaceViewRenderer remoteRenderer);
 
-        void onJoinCallBye();
+        void onJoinCallBye(String clientId);
 
         void onAudioDevicesChanged(AppRTCAudioManager.AudioDevice device, Set<AppRTCAudioManager.AudioDevice> availableDevices);
     }
