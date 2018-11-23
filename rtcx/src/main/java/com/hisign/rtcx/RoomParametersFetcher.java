@@ -65,6 +65,7 @@ public class RoomParametersFetcher {
 
     public void makeRequest() {
         Log.d(TAG, "Connecting to room: " + roomUrl);
+        Log.d(TAG, "Param Connecting to room: " + roomMessage);
         httpConnection =
                 new AsyncHttpURLConnection("POST", roomUrl, roomMessage, new AsyncHttpEvents() {
                     @Override
@@ -101,6 +102,7 @@ public class RoomParametersFetcher {
             String wssPostUrl = roomJson.getString("wss_post_url");
             boolean initiator = (roomJson.getBoolean("is_initiator"));
             if (!initiator) {
+                //room clients message
                 iceCandidates = new LinkedList<IceCandidate>();
                 String messagesString = roomJson.getString("messages");
                 JSONArray messages = new JSONArray(messagesString);
