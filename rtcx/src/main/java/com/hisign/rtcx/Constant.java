@@ -6,7 +6,7 @@ public class Constant {
     public static final int STAT_CALLBACK_PERIOD = 1000;
 
 //    public static final String ROOM_SERVER_URL_DEFAULT = "http://211.157.146.7:8080";
-    public static final String ROOM_SERVER_URL_DEFAULT = "http://192.168.1.56:8080";
+    public static final String ROOM_SERVER_URL_DEFAULT = "http://192.168.1.45:8080";
 
     // List of mandatory application permissions.
     public static final String[] MANDATORY_PERMISSIONS = {"android.permission.MODIFY_AUDIO_SETTINGS",

@@ -25,6 +25,8 @@ import org.webrtc.SessionDescription;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -83,7 +85,6 @@ public class RoomParametersFetcher {
     }
 
     private void roomHttpResponseParse(String response) {
-        Log.d(TAG, "Room response: " + response);
         try {
             LinkedList<IceCandidate> iceCandidates = null;
             SessionDescription offerSdp = null;
@@ -164,41 +165,40 @@ public class RoomParametersFetcher {
             throws IOException, JSONException {
         LinkedList<PeerConnection.IceServer> turnServers = new LinkedList<PeerConnection.IceServer>();
         Log.d(TAG, "Request TURN from: " + url);
-//        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-//        connection.setDoOutput(true);
-//        connection.setRequestProperty("REFERER", "https://192.168.1.8/");
-//        connection.setConnectTimeout(TURN_HTTP_TIMEOUT_MS);
-//        connection.setReadTimeout(TURN_HTTP_TIMEOUT_MS);
-//        int responseCode = 0;
-//        try {
-//            responseCode = connection.getResponseCode();
-//        } catch (Exception e) {
-//            System.out.println("e = " + e);
-//            throw e;
-//        }
-//        if (responseCode != 200) {
-//            throw new IOException("Non-200 response when requesting TURN server from " + url + " : "
-//                    + connection.getHeaderField(null));
-//        }
-//        InputStream responseStream = connection.getInputStream();
-//        String response = drainStream(responseStream);
-//        connection.disconnect();
-        String response = "{\n" +
-                "    \"iceServers\": [\n" +
-                "        {\n" +
-                "            \"urls\": [\n" +
-                "                \"turn:numb.viagenie.ca\"\n" +
-                "            ],\n" +
-                "            \"username\": \"webrtc@live.com\",\n" +
-                "            \"credential\": \"muazkh\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"urls\": [\n" +
-                "                \"stun:stun.l.google.com:19302\"\n" +
-                "            ]\n" +
-                "        }\n" +
-                "    ]\n" +
-                "}";
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setDoOutput(true);
+        connection.setConnectTimeout(TURN_HTTP_TIMEOUT_MS);
+        connection.setReadTimeout(TURN_HTTP_TIMEOUT_MS);
+        int responseCode = 0;
+        try {
+            responseCode = connection.getResponseCode();
+        } catch (Exception e) {
+            System.out.println("e = " + e);
+            throw e;
+        }
+        if (responseCode != 200) {
+            throw new IOException("Non-200 response when requesting TURN server from " + url + " : "
+                    + connection.getHeaderField(null));
+        }
+        InputStream responseStream = connection.getInputStream();
+        String response = drainStream(responseStream);
+        connection.disconnect();
+//        String response = "{\n" +
+//                "    \"iceServers\": [\n" +
+//                "        {\n" +
+//                "            \"urls\": [\n" +
+//                "                \"turn:numb.viagenie.ca\"\n" +
+//                "            ],\n" +
+//                "            \"username\": \"webrtc@live.com\",\n" +
+//                "            \"credential\": \"muazkh\"\n" +
+//                "        },\n" +
+//                "        {\n" +
+//                "            \"urls\": [\n" +
+//                "                \"stun:stun.l.google.com:19302\"\n" +
+//                "            ]\n" +
+//                "        }\n" +
+//                "    ]\n" +
+//                "}";
         Log.d(TAG, "TURN response: " + response);
         JSONObject responseJSON = new JSONObject(response);
         JSONArray iceServers = responseJSON.getJSONArray("iceServers");
