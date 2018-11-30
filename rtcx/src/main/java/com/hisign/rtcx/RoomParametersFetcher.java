@@ -183,22 +183,6 @@ public class RoomParametersFetcher {
         InputStream responseStream = connection.getInputStream();
         String response = drainStream(responseStream);
         connection.disconnect();
-//        String response = "{\n" +
-//                "    \"iceServers\": [\n" +
-//                "        {\n" +
-//                "            \"urls\": [\n" +
-//                "                \"turn:numb.viagenie.ca\"\n" +
-//                "            ],\n" +
-//                "            \"username\": \"webrtc@live.com\",\n" +
-//                "            \"credential\": \"muazkh\"\n" +
-//                "        },\n" +
-//                "        {\n" +
-//                "            \"urls\": [\n" +
-//                "                \"stun:stun.l.google.com:19302\"\n" +
-//                "            ]\n" +
-//                "        }\n" +
-//                "    ]\n" +
-//                "}";
         Log.d(TAG, "TURN response: " + response);
         JSONObject responseJSON = new JSONObject(response);
         JSONArray iceServers = responseJSON.getJSONArray("iceServers");
