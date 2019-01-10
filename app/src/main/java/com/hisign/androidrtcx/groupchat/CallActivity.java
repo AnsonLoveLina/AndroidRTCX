@@ -56,15 +56,15 @@ public class CallActivity extends Activity implements RtcClient.CallBack {
         Intent intent = this.getIntent();
         final String roomId = intent.getStringExtra("roomId");
         SurfaceViewRenderer fullscreenView = findViewById(R.id.fullscreen_video_view);
-        SurfaceViewRenderer pipscreenView = findViewById(R.id.pip_video_view);
-        pipscreenView.setOnClickListener(new View.OnClickListener() {
+        SurfaceViewRenderer smallscreenView = findViewById(R.id.small_video_view);
+        smallscreenView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 callClient.setSwappedFeeds(swappedFeeds);
                 swappedFeeds = !swappedFeeds;
             }
         });
-        callClient = RtcClient.call(roomId, CallActivity.this, fullscreenView, pipscreenView);
+        callClient = RtcClient.call(roomId, CallActivity.this, fullscreenView, smallscreenView);
         callClient.toggleMic();
         CallFragment callFragment = new CallFragment();
         FragmentTransaction ft = getFragmentManager().beginTransaction();

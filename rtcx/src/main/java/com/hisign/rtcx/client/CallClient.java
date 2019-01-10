@@ -96,7 +96,7 @@ public class CallClient {
         mUiThread = Thread.currentThread();
     }
 
-    private void init(SurfaceViewRenderer fullscreenView, SurfaceViewRenderer pipscreenView) {
+    private void init(SurfaceViewRenderer fullscreenView, SurfaceViewRenderer smallscreenView) {
 
         final CallClient.ProxyRenderer remoteProxyRenderer = new CallClient.ProxyRenderer();
         final CallClient.ProxyRenderer localProxyRenderer = new CallClient.ProxyRenderer();
@@ -109,8 +109,8 @@ public class CallClient {
         } else {
             localRenderer = new SurfaceViewRenderer(getApplicationContext());
         }
-        if (pipscreenView != null) {
-            remoteRenderer = pipscreenView;
+        if (smallscreenView != null) {
+            remoteRenderer = smallscreenView;
         } else {
             remoteRenderer = new SurfaceViewRenderer(getApplicationContext());
         }

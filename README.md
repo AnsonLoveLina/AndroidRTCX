@@ -6,7 +6,7 @@
         //初始化
         RtcClient.init(getApplicationContext());
         //发起视频聊天，参数2：RtcClient.CallBack
-        //CallClient callClient = RtcClient.call(roomId,  RTCActivity.this,fullscreenView, pipscreenView);
+        //CallClient callClient = RtcClient.call(roomId,  RTCActivity.this,fullscreenView, smallscreenView);
         CallClient callClient = RtcClient.call(roomId,  RTCActivity.this);
         //结束视频聊天，并且释放资源
         RtcClient.release(roomId);
@@ -18,10 +18,10 @@
 
     初始化，默认参数
     
-- CallClient callClient = RtcClient.call(String roomId, CallBack callBack, fullscreenView, pipscreenView)
+- CallClient callClient = RtcClient.call(String roomId, CallBack callBack, fullscreenView, smallscreenView)
 
     发起进入房间的动作    
-    fullscreenView和pipscreenView可以不填，则内部会new一个SurfaceViewRenderer给你，填了则用你的SurfaceViewRenderer
+    fullscreenView和smallscreenView可以不填，则内部会new一个SurfaceViewRenderer给你，填了则用你的SurfaceViewRenderer
     
 - release(String roomId)
 

@@ -73,7 +73,9 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
                         }
                     }).start();
 
-                    CallActivity.startAction(context, SocketIOClientUtil.getUser().getCustomerId());
+                    //用发起者的USERID作为房间ID
+                    String roomId = SocketIOClientUtil.getUser().getCustomerId();
+                    CallActivity.startAction(context, roomId);
                 }
             });
             holder.leftLayout.setVisibility(View.VISIBLE);
