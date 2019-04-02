@@ -111,7 +111,7 @@ public class SocketIOClient {
             e.printStackTrace();
         }
         if (!customers.isEmpty()) {
-            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            onConnection(new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     register(customers);
@@ -180,10 +180,21 @@ public class SocketIOClient {
         socket.emit(EVENT_BROADCASTINFO, jsonObject);
     }
 
-    public void onConnection(Emitter.Listener listener) {
-        logger.info("socketIO is connected!");
-        status = STATUS.CONNECT;
-        connectedEmitter = socket.on(Socket.EVENT_CONNECT, listener);
+    public void onConnection(final Emitter.Listener listener) {
+        connectedEmitter = socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                logger.info("socketIO is connected!");
+                status = STATUS.CONNECT;
+                listener.call(args);
+                socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        logger.warning("socketIO disconnect!");
+                    }
+                });
+            }
+        });
     }
 
     public Customer getUserCustomer() {
