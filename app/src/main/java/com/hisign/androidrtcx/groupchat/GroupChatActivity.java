@@ -102,7 +102,7 @@ public class GroupChatActivity extends Activity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         stuffRecyclerView.setLayoutManager(layoutManager);
         //设置adapter
-        stuffAdapter = new StuffAdapter(stuffs, SocketIOClientUtil.getInstance(null), GroupChatActivity.this);
+        stuffAdapter = new StuffAdapter(stuffs, SocketIOClientUtil.getInstance(), GroupChatActivity.this);
         stuffRecyclerView.setAdapter(stuffAdapter);
         //设置发送按钮
         send = (Button) findViewById(R.id.button);
@@ -136,7 +136,7 @@ public class GroupChatActivity extends Activity {
                         if (!EventBusManager.getEventBus().isRegistered(GroupChatActivity.this)) {
                             EventBusManager.getEventBus().register(GroupChatActivity.this);
                         }
-                        socketIOClient = SocketIOClientUtil.getInstance(null);
+                        socketIOClient = SocketIOClientUtil.getInstance();
                     }
 
                     @Override
@@ -221,7 +221,7 @@ public class GroupChatActivity extends Activity {
             @Override
             public void run() {
                 for (SocketIOClient.Customer group : SocketIOClientUtil.getGroups()) {
-                    SocketIOClientUtil.getInstance(null).send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff));
+                    SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff));
                 }
             }
         }).start();

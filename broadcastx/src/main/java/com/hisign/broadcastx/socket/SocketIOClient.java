@@ -1,8 +1,10 @@
 package com.hisign.broadcastx.socket;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Queues;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.pj.Stuff;
+import com.hisign.broadcastx.util.Constant;
 import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.json.JSONException;
@@ -10,9 +12,15 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -135,12 +143,16 @@ public class SocketIOClient {
         return connectedEmitter.on(event, listener);
     }
 
-    public void register(Collection<Customer> customers) {
+    public Map<Customer, Map<String, String>> register(Collection<Customer> customers) {
         if (status.ordinal() > STATUS.REGISTER.ordinal()) {
             logger.info("status: " + status + ",register error,socketIO not connected!");
-            return;
+            return null;
         }
+        Map<Customer, Map<String, String>> result = new HashMap<>();
         for (Customer customer : customers) {
+            if (customer == null) {
+                continue;
+            }
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put(customer.customerType.getCustomerType(), customer.customerId);
@@ -148,21 +160,30 @@ public class SocketIOClient {
                 e.printStackTrace();
             }
             addCustomers(customer);
-            emit(EVENT_REGISTER, jsonObject, new RetrySocketEmitFail(socketFailRetrySum));
+            Map<String, String> response = emit(EVENT_REGISTER, jsonObject, null);
+            result.put(customer, response);
         }
         status = STATUS.REGISTER;
+        return result;
     }
 
-    public void unRegister(Customer customer) {
+    public Map<String, String> unRegister(Customer customer) {
         if (!customers.contains(customer)) {
             logger.warning(customer + " not registered!");
-            return;
+            return null;
+        }
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put(customer.customerType.getCustomerType(), customer.customerId);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
         removeCustomers(customer);
-        emit(EVENT_UNREGISTER, customer, new RetrySocketEmitFail(socketFailRetrySum));
+        Map<String, String> response = emit(EVENT_UNREGISTER, jsonObject, null);
         if (customers.isEmpty()) {
             status = STATUS.UNREGISTER;
         }
+        return response;
     }
 
     public void disconnect() {
@@ -189,7 +210,7 @@ public class SocketIOClient {
     /**
      * ThreadSafe
      */
-    private class RetrySocketEmitFail implements ISocketEmitFail{
+    private class RetrySocketEmitFail implements ISocketEmitFail {
         private int retrySum;
         private AtomicInteger retryCount = new AtomicInteger(0);
 
@@ -198,36 +219,55 @@ public class SocketIOClient {
         }
 
         @Override
-        public void onEmitFail(String eventName, Object object) {
-            if (retryCount.compareAndSet(retrySum,retrySum)){
+        public void onEmitFail(String eventName, Object object, Map<String, String> response) {
+            if (retryCount.compareAndSet(retrySum, retrySum)) {
                 retryCount.getAndIncrement();
                 emit(eventName, object, this);
             }
         }
     }
 
-    private void emit(final String eventName, final Object object, final ISocketEmitFail iSocketEmitFail) {
-        socket.emit(eventName, object, new Ack() {
+    private Map<String, String> emit(final String eventName, final Object object, final ISocketEmitFail iSocketEmitFail) {
+        final BlockingQueue<Map<String, String>> ackQueue = Queues.newSynchronousQueue();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new Runnable() {
             @Override
-            public void call(Object... args) {
-                int flag = 0;
-                for (Object object : args) {
-                    Map<String, String> response = null;
-                    try {
-                        response = FastJsonUtil.parseObject(object, Map.class);
-                    } catch (Exception e) {
-                        logger.info(String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
+            public void run() {
+                System.out.println("Thread.currentThread() = " + Thread.currentThread());
+                System.out.println("eventName = " + eventName);
+                System.out.println("object = " + object);
+                socket.emit(eventName, object, new Ack() {
+                    @Override
+                    public void call(Object... args) {
+                        System.out.println("call Thread.currentThread() = " + Thread.currentThread());
+                        String response = args[0] == null ? "" : args[0].toString();
+                        Map<String, String> responseMap = null;
+                        try {
+                            responseMap = FastJsonUtil.parseObject(args[0], Map.class);
+                        } catch (Exception e) {
+                            logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
+                        }
+                        try {
+                            ackQueue.put(responseMap);
+                        } catch (InterruptedException e) {
+                            logger.fine(e.getMessage());
+                        }
+                        if ("0".equals(responseMap.get("flag"))) {
+                            if (iSocketEmitFail != null) {
+                                iSocketEmitFail.onEmitFail(eventName, object, responseMap);
+                            }
+                        }
                     }
-                    if ("1".equals(response.get("flag"))) {
-                        flag = 1;
-                        break;
-                    }
-                }
-                if (flag == 0) {
-                    iSocketEmitFail.onEmitFail(eventName, object);
-                }
+                });
             }
         });
+        Map<String, String> responseMap = null;
+        try {
+            responseMap = ackQueue.poll(Constant.EMIT_TIMEOUT,Constant.EMIT_TIMEUNIT);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return responseMap;
     }
 
     public void onConnection(final Emitter.Listener listener) {
@@ -245,6 +285,10 @@ public class SocketIOClient {
                 });
             }
         });
+    }
+
+    public Set<Customer> getCustomers() {
+        return customers;
     }
 
     public Customer getUserCustomer() {

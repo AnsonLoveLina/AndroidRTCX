@@ -6,6 +6,8 @@ dependencies {
     api ('io.socket:socket.io-client:1.0.0')
     api ('io.socket:engine.io-client:1.0.0')
     api ('com.alibaba:fastjson:1.2.19')
+    api 'com.google.guava:guava:18.0'
+    testCompile 'junit:junit:4.12'
 }
 
 sourceCompatibility = "1.7"

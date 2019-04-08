@@ -55,22 +55,10 @@ public class SocketService extends Service {
     private void socketConnect() {
         String userId = Integer.toString((new Random()).nextInt(100000000));
         //ExecutorService executor = Executors.newSingleThreadExecutor();
-        socketIOClient = SocketIOClientUtil.getInstance(getString(R.string.chat_socketio_url_default));
-        groupCustomer = new SocketIOClient.Customer(CustomerType.GROUP, "110");
-        userCustomer = new SocketIOClient.Customer(CustomerType.USER, userId);
-        SocketIOClientUtil.addGroup(groupCustomer);
-        SocketIOClientUtil.setUser(userCustomer);
-        Log.i(TAG, "setUserEnd");
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-        socketIOClient.connection();
-        socketIOClient.onConnection(new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                socketIOClient.register(Sets.newHashSet(groupCustomer, userCustomer));
-            }
-        });
+        socketIOClient = SocketIOClientUtil.socketConnect(getString(R.string.chat_socketio_url_default), userId, new String[]{"110"});
+        if (socketIOClient == null) {
+            return;
+        }
         final EventBus defaultEB = EventBusManager.getEventBus();
         socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
             @Override
