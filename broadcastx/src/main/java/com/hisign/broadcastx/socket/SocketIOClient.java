@@ -1,6 +1,8 @@
 package com.hisign.broadcastx.socket;
 
+import com.alibaba.fastjson.JSON;
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.json.JSONException;
@@ -9,9 +11,11 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -142,7 +146,7 @@ public class SocketIOClient {
                 e.printStackTrace();
             }
             addCustomers(customer);
-            socket.emit(EVENT_REGISTER, jsonObject);
+            emit(EVENT_REGISTER,jsonObject);
         }
         status = STATUS.REGISTER;
     }
@@ -153,7 +157,7 @@ public class SocketIOClient {
             return;
         }
         removeCustomers(customer);
-        socket.emit(EVENT_UNREGISTER, customer);
+        emit(EVENT_UNREGISTER,customer);
         if (customers.isEmpty()) {
             status = STATUS.UNREGISTER;
         }
@@ -177,7 +181,31 @@ public class SocketIOClient {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        socket.emit(EVENT_BROADCASTINFO, jsonObject);
+        emit(EVENT_BROADCASTINFO,jsonObject);
+    }
+
+    private void emit(final String eventName,final Object object) {
+        socket.emit(eventName, object, new Ack() {
+            @Override
+            public void call(Object... args) {
+                int flag = 0;
+                for (Object object : args) {
+                    Map<String, String> stuff = null;
+                    try {
+                        stuff = FastJsonUtil.parseObject(object, Map.class);
+                    } catch (Exception e) {
+                        logger.info(String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
+                    }
+                    if ("1".equals(stuff.get("flag"))) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag == 0) {
+                    emit(eventName,object);
+                }
+            }
+        });
     }
 
     public void onConnection(final Emitter.Listener listener) {

@@ -18,6 +18,7 @@ import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
+import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -51,22 +52,6 @@ public class SocketService extends Service {
         context.stopService(intent);
     }
 
-    private Stuff parseObject(Object object) {
-        Stuff stuff = null;
-        if (object != null && object.getClass() == Stuff.class) {
-            stuff = (Stuff) object;
-        } else if (object != null && object.getClass() == String.class) {
-            try {
-                stuff = JSON.parseObject(object.toString(), Stuff.class);
-            } catch (Exception e) {
-                Log.e(TAG, object.toString() + "\ncan not parse to stuff!", e);
-            }
-        } else {
-            Log.e(TAG, "can not parse to stuff!");
-        }
-        return stuff;
-    }
-
     private void socketConnect() {
         String userId = Integer.toString((new Random()).nextInt(100000000));
         //ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -91,7 +76,12 @@ public class SocketService extends Service {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
-                    Stuff stuff = parseObject(object);
+                    Stuff stuff = null;
+                    try {
+                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
+                    } catch (Exception e) {
+                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
+                    }
                     if (stuff == null) {
                         return;
                     }
@@ -103,7 +93,12 @@ public class SocketService extends Service {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
-                    Stuff stuff = parseObject(object);
+                    Stuff stuff = null;
+                    try {
+                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
+                    } catch (Exception e) {
+                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
+                    }
                     if (stuff == null) {
                         return;
                     }
@@ -116,7 +111,12 @@ public class SocketService extends Service {
             @Override
             public void call(Object... args) {
                 for (Object object : args) {
-                    Stuff stuff = parseObject(object);
+                    Stuff stuff = null;
+                    try {
+                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
+                    } catch (Exception e) {
+                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
+                    }
                     if (stuff == null) {
                         return;
                     }
