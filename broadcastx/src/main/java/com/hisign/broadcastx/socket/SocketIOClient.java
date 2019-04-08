@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import io.socket.client.Ack;
@@ -26,6 +27,7 @@ public class SocketIOClient {
     private static final Logger logger = Logger.getLogger(SocketIOClient.class.getName());
 
     private static final String TAG = "SocketIOClient";
+    private final int socketFailRetrySum = 3;
     private String url;
     private Set<Customer> customers = new HashSet<>();
     private Customer userCustomer = new Customer();
@@ -146,7 +148,7 @@ public class SocketIOClient {
                 e.printStackTrace();
             }
             addCustomers(customer);
-            emit(EVENT_REGISTER,jsonObject);
+            emit(EVENT_REGISTER, jsonObject, new RetrySocketEmitFail(socketFailRetrySum));
         }
         status = STATUS.REGISTER;
     }
@@ -157,7 +159,7 @@ public class SocketIOClient {
             return;
         }
         removeCustomers(customer);
-        emit(EVENT_UNREGISTER,customer);
+        emit(EVENT_UNREGISTER, customer, new RetrySocketEmitFail(socketFailRetrySum));
         if (customers.isEmpty()) {
             status = STATUS.UNREGISTER;
         }
@@ -181,28 +183,48 @@ public class SocketIOClient {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        emit(EVENT_BROADCASTINFO,jsonObject);
+        emit(EVENT_BROADCASTINFO, jsonObject, new RetrySocketEmitFail(socketFailRetrySum));
     }
 
-    private void emit(final String eventName,final Object object) {
+    /**
+     * ThreadSafe
+     */
+    private class RetrySocketEmitFail implements ISocketEmitFail{
+        private int retrySum;
+        private AtomicInteger retryCount = new AtomicInteger(0);
+
+        public RetrySocketEmitFail(int retrySum) {
+            this.retrySum = retrySum;
+        }
+
+        @Override
+        public void onEmitFail(String eventName, Object object) {
+            if (retryCount.compareAndSet(retrySum,retrySum)){
+                retryCount.getAndIncrement();
+                emit(eventName, object, this);
+            }
+        }
+    }
+
+    private void emit(final String eventName, final Object object, final ISocketEmitFail iSocketEmitFail) {
         socket.emit(eventName, object, new Ack() {
             @Override
             public void call(Object... args) {
                 int flag = 0;
                 for (Object object : args) {
-                    Map<String, String> stuff = null;
+                    Map<String, String> response = null;
                     try {
-                        stuff = FastJsonUtil.parseObject(object, Map.class);
+                        response = FastJsonUtil.parseObject(object, Map.class);
                     } catch (Exception e) {
                         logger.info(String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
                     }
-                    if ("1".equals(stuff.get("flag"))) {
+                    if ("1".equals(response.get("flag"))) {
                         flag = 1;
                         break;
                     }
                 }
                 if (flag == 0) {
-                    emit(eventName,object);
+                    iSocketEmitFail.onEmitFail(eventName, object);
                 }
             }
         });
