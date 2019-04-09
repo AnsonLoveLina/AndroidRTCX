@@ -21,14 +21,14 @@ import static org.junit.Assert.*;
 public class SocketIOClientUtilTest {
 
     @Test
-    public void LinkedBlockingQueue() {
+    public void linkedBlockingQueue() {
         final BlockingQueue<String> ackQueue = Queues.newSynchronousQueue();
         ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(1000000);
                     System.out.println("put 1");
                     ackQueue.put("1");
                 } catch (InterruptedException e) {

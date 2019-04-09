@@ -8,6 +8,8 @@ import com.hisign.broadcastx.util.FastJsonUtil;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import io.socket.emitter.Emitter;
@@ -19,7 +21,7 @@ public class SocketIOClientUtil {
 
     private static SocketIOClient socketIOClient;
 
-    public static SocketIOClient getInstance(){
+    public static SocketIOClient getInstance() {
         return socketIOClient;
     }
 

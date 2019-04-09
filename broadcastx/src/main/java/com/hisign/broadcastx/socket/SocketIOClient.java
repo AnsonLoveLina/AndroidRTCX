@@ -30,6 +30,8 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import jodd.util.StringUtil;
 
+import static com.hisign.broadcastx.util.Constant.defaultFailResponseMap;
+
 public class SocketIOClient {
 
     private static final Logger logger = Logger.getLogger(SocketIOClient.class.getName());
@@ -229,54 +231,57 @@ public class SocketIOClient {
 
     private Map<String, String> emit(final String eventName, final Object object, final ISocketEmitFail iSocketEmitFail) {
         final BlockingQueue<Map<String, String>> ackQueue = Queues.newSynchronousQueue();
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new Runnable() {
+        socket.emit(eventName, object, new Ack() {
             @Override
-            public void run() {
-                System.out.println("Thread.currentThread() = " + Thread.currentThread());
-                System.out.println("eventName = " + eventName);
-                System.out.println("object = " + object);
-                socket.emit(eventName, object, new Ack() {
-                    @Override
-                    public void call(Object... args) {
-                        System.out.println("call Thread.currentThread() = " + Thread.currentThread());
-                        String response = args[0] == null ? "" : args[0].toString();
-                        Map<String, String> responseMap = null;
-                        try {
-                            responseMap = FastJsonUtil.parseObject(args[0], Map.class);
-                        } catch (Exception e) {
-                            logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
-                        }
-                        try {
-                            ackQueue.put(responseMap);
-                        } catch (InterruptedException e) {
-                            logger.fine(e.getMessage());
-                        }
-                        if ("0".equals(responseMap.get("flag"))) {
-                            if (iSocketEmitFail != null) {
-                                iSocketEmitFail.onEmitFail(eventName, object, responseMap);
-                            }
-                        }
-                    }
-                });
+            public void call(Object... args) {
+                String response = args[0] == null ? "" : args[0].toString();
+                Map<String, String> responseMap = null;
+                try {
+                    responseMap = FastJsonUtil.parseObject(response, Map.class);
+                } catch (Exception e) {
+                    logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
+                }
+                try {
+                    ackQueue.put(responseMap);
+                } catch (InterruptedException e) {
+                    logger.fine(e.getMessage());
+                }
             }
         });
         Map<String, String> responseMap = null;
         try {
-            responseMap = ackQueue.poll(Constant.EMIT_TIMEOUT,Constant.EMIT_TIMEUNIT);
+            responseMap = ackQueue.poll(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.fine(e.getMessage());
+        }
+        if (responseMap == null) {
+            responseMap = defaultFailResponseMap;
+        }
+        if ("0".equals(responseMap.get("flag"))) {
+            if (iSocketEmitFail != null) {
+                iSocketEmitFail.onEmitFail(eventName, object, responseMap);
+            }
         }
         return responseMap;
     }
 
     public void onConnection(final Emitter.Listener listener) {
         connectedEmitter = socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            /**
+             * EVENT_CONNECT该方法不允许阻塞
+             * @param args
+             */
             @Override
-            public void call(Object... args) {
+            public void call(final Object... args) {
                 logger.info("socketIO is connected!");
                 status = STATUS.CONNECT;
-                listener.call(args);
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.call(args);
+                    }
+                });
                 socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {

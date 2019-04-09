@@ -4,7 +4,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api ('org.jodd:jodd-core:3.6.6')
     api ('io.socket:socket.io-client:1.0.0')
-    api ('io.socket:engine.io-client:1.0.0')
     api ('com.alibaba:fastjson:1.2.19')
     api 'com.google.guava:guava:18.0'
     testCompile 'junit:junit:4.12'
