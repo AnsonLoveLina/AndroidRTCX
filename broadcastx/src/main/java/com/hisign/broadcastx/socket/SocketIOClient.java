@@ -75,7 +75,7 @@ public class SocketIOClient {
         }
 
         public Customer(CustomerType customerType, String customerId) {
-            if (customerType != null || StringUtil.isBlank(customerId)) {
+            if (customerType == null || StringUtil.isBlank(customerId)) {
                 logger.info("customerType or customerId is blank!");
             }
             this.customerType = customerType;
@@ -139,14 +139,6 @@ public class SocketIOClient {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-//        if (!customers.isEmpty()) {
-//            onConnection(new Emitter.Listener() {
-//                @Override
-//                public void call(Object... args) {
-//                    register(customers);
-//                }
-//            });
-//        }
         socket.connect();
     }
 
