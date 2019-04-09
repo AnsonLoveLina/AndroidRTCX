@@ -18,9 +18,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -31,6 +35,7 @@ import io.socket.emitter.Emitter;
 import jodd.util.StringUtil;
 
 import static com.hisign.broadcastx.util.Constant.defaultFailResponseMap;
+import static com.hisign.broadcastx.util.Constant.timeoutFailResponseMap;
 
 public class SocketIOClient {
 
@@ -57,6 +62,14 @@ public class SocketIOClient {
     public static class Customer {
         private CustomerType customerType;
         private String customerId;
+
+        @Override
+        public String toString() {
+            return "Customer{" +
+                    "customerType=" + customerType +
+                    ", customerId='" + customerId + '\'' +
+                    '}';
+        }
 
         public Customer() {
         }
@@ -126,14 +139,14 @@ public class SocketIOClient {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        if (!customers.isEmpty()) {
-            onConnection(new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    register(customers);
-                }
-            });
-        }
+//        if (!customers.isEmpty()) {
+//            onConnection(new Emitter.Listener() {
+//                @Override
+//                public void call(Object... args) {
+//                    register(customers);
+//                }
+//            });
+//        }
         socket.connect();
     }
 
@@ -142,37 +155,42 @@ public class SocketIOClient {
         if (status != STATUS.REGISTER) {
             logger.warning("no one registered!");
         }
+        if (connectedEmitter == null) {
+            logger.fine("socketIO not connected!");
+            return null;
+        }
         return connectedEmitter.on(event, listener);
     }
 
-    public Map<Customer, Map<String, String>> register(Collection<Customer> customers) {
-        if (status.ordinal() > STATUS.REGISTER.ordinal()) {
-            logger.info("status: " + status + ",register error,socketIO not connected!");
-            return null;
-        }
-        Map<Customer, Map<String, String>> result = new HashMap<>();
-        for (Customer customer : customers) {
-            if (customer == null) {
-                continue;
+    public void register(final Customer customer, final ISocketEmitCallBack iSocketEmitCallBack) {
+        onConnection(new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if (status.ordinal() > STATUS.REGISTER.ordinal()) {
+                    logger.info("status: " + status + ",register error,socketIO not connected!");
+                    return;
+                }
+                if (customer == null) {
+                    logger.fine("customer is empty!");
+                    return;
+                }
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put(customer.customerType.getCustomerType(), customer.customerId);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                addCustomers(customer);
+                emit(EVENT_REGISTER, jsonObject, iSocketEmitCallBack);
+                status = STATUS.REGISTER;
             }
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put(customer.customerType.getCustomerType(), customer.customerId);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            addCustomers(customer);
-            Map<String, String> response = emit(EVENT_REGISTER, jsonObject, null);
-            result.put(customer, response);
-        }
-        status = STATUS.REGISTER;
-        return result;
+        });
     }
 
-    public Map<String, String> unRegister(Customer customer) {
+    public void unRegister(Customer customer, ISocketEmitCallBack iSocketEmitCallBack) {
         if (!customers.contains(customer)) {
             logger.warning(customer + " not registered!");
-            return null;
+            return;
         }
         JSONObject jsonObject = new JSONObject();
         try {
@@ -181,11 +199,10 @@ public class SocketIOClient {
             e.printStackTrace();
         }
         removeCustomers(customer);
-        Map<String, String> response = emit(EVENT_UNREGISTER, jsonObject, null);
+        emit(EVENT_UNREGISTER, jsonObject, iSocketEmitCallBack);
         if (customers.isEmpty()) {
             status = STATUS.UNREGISTER;
         }
-        return response;
     }
 
     public void disconnect() {
@@ -193,76 +210,52 @@ public class SocketIOClient {
         status = STATUS.CLOSE;
     }
 
-    public void send(String event, String customer, Object object) {
+    public void send(String event, String targetCustomer, Object object, ISocketEmitCallBack iSocketEmitCallBack) {
+        System.out.println("send:" + Thread.currentThread());
         if (status.ordinal() > STATUS.REGISTER.ordinal()) {
             logger.info("status: " + status + ",send error,socketIO not connected!");
             return;
         }
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("roomName", customer);
+            jsonObject.put("roomName", targetCustomer);
             jsonObject.put("eventName", event);
             jsonObject.put("text", object);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        emit(EVENT_BROADCASTINFO, jsonObject, new RetrySocketEmitFail(socketFailRetrySum));
+        emit(EVENT_BROADCASTINFO, jsonObject, iSocketEmitCallBack);
     }
 
-    /**
-     * ThreadSafe
-     */
-    private class RetrySocketEmitFail implements ISocketEmitFail {
-        private int retrySum;
-        private AtomicInteger retryCount = new AtomicInteger(0);
-
-        public RetrySocketEmitFail(int retrySum) {
-            this.retrySum = retrySum;
-        }
-
-        @Override
-        public void onEmitFail(String eventName, Object object, Map<String, String> response) {
-            if (retryCount.compareAndSet(retrySum, retrySum)) {
-                retryCount.getAndIncrement();
-                emit(eventName, object, this);
-            }
-        }
-    }
-
-    private Map<String, String> emit(final String eventName, final Object object, final ISocketEmitFail iSocketEmitFail) {
-        final BlockingQueue<Map<String, String>> ackQueue = Queues.newSynchronousQueue();
+    private void emit(final String eventName, final Object object, final ISocketEmitCallBack iSocketEmitCallBack) {
         socket.emit(eventName, object, new Ack() {
             @Override
-            public void call(Object... args) {
-                String response = args[0] == null ? "" : args[0].toString();
-                Map<String, String> responseMap = null;
+            public void call(final Object... args) {
+                ExecutorService executorService = Executors.newCachedThreadPool();
+                Future<Map<String, String>> future = executorService.submit(new Callable<Map<String, String>>() {
+                    @Override
+                    public Map<String, String> call() {
+                        String response = args[0] == null ? "" : args[0].toString();
+                        Map<String, String> responseMap = null;
+                        try {
+                            responseMap = FastJsonUtil.parseObject(response, Map.class);
+                        } catch (Exception e) {
+                            logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
+                        }
+                        return responseMap;
+                    }
+                });
                 try {
-                    responseMap = FastJsonUtil.parseObject(response, Map.class);
-                } catch (Exception e) {
-                    logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
-                }
-                try {
-                    ackQueue.put(responseMap);
-                } catch (InterruptedException e) {
+                    iSocketEmitCallBack.call(eventName, object, future.get(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT));
+                } catch (TimeoutException e) {
                     logger.fine(e.getMessage());
+                    iSocketEmitCallBack.call(eventName, object, timeoutFailResponseMap);
+                } catch (Exception e) {
+                    logger.fine(e.getMessage());
+                    iSocketEmitCallBack.call(eventName, object, defaultFailResponseMap);
                 }
             }
         });
-        Map<String, String> responseMap = null;
-        try {
-            responseMap = ackQueue.poll(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT);
-        } catch (InterruptedException e) {
-            logger.fine(e.getMessage());
-        }
-        if (responseMap == null) {
-            responseMap = defaultFailResponseMap;
-        }
-        if ("0".equals(responseMap.get("flag"))) {
-            if (iSocketEmitFail != null) {
-                iSocketEmitFail.onEmitFail(eventName, object, responseMap);
-            }
-        }
-        return responseMap;
     }
 
     public void onConnection(final Emitter.Listener listener) {
@@ -275,13 +268,7 @@ public class SocketIOClient {
             public void call(final Object... args) {
                 logger.info("socketIO is connected!");
                 status = STATUS.CONNECT;
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-                executorService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.call(args);
-                    }
-                });
+                listener.call(args);
                 socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {

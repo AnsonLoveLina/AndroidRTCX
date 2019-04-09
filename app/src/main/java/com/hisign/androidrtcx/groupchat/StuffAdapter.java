@@ -2,6 +2,7 @@ package com.hisign.androidrtcx.groupchat;
 
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,14 +14,18 @@ import com.alibaba.fastjson.JSON;
 import com.hisign.androidrtcx.R;
 import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.socket.ISocketEmitCallBack;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
+import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
 
 public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> {
+    private static final String TAG = "StuffAdapter";
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -69,7 +74,14 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
                         @Override
                         public void run() {
                             Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), CALL_EVENT, "");
-                            socketIOClient.send(CALL_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
+                            socketIOClient.send(CALL_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff), new ISocketEmitCallBack() {
+                                @Override
+                                public void call(String eventName, Object object, Map<String, String> responseMap) {
+                                    if (!"1".equals(responseMap.get("flag"))) {
+                                        Log.e(TAG, String.format("%s error!\n%s", CALL_EVENT.getEventName(), responseMap.toString()));
+                                    }
+                                }
+                            });
                         }
                     }).start();
 

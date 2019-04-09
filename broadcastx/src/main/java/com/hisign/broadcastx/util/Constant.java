@@ -14,4 +14,10 @@ public class Constant {
         defaultFailResponseMap.put("messageLevel","err");
         defaultFailResponseMap.put("message","unknown error!");
     }
+    public static Map<String, String> timeoutFailResponseMap = Maps.newHashMap();
+    static {
+        defaultFailResponseMap.put("flag","0");
+        defaultFailResponseMap.put("messageLevel","err");
+        defaultFailResponseMap.put("message","emit timeout error!");
+    }
 }

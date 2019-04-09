@@ -36,38 +36,14 @@ public class SocketIOClientUtil {
      * userid,groupids在连接成功后第一时间回调注册
      *
      * @param url
-     * @param userid
-     * @param groupids
      * @return
      */
-    public static SocketIOClient socketConnect(String url, String userid, String[] groupids) {
+    public static SocketIOClient socketConnect(String url) {
         socketIOClient = SocketIOClientUtil.getInstance(url);
         if (socketIOClient == null) {
             return null;
         }
-        final Set<SocketIOClient.Customer> customers = Sets.newHashSet();
-        for (String groupid : groupids) {
-            if (StringUtil.isNotBlank(groupid)) {
-                customers.add(new SocketIOClient.Customer(CustomerType.GROUP, groupid));
-            }
-        }
-        if (StringUtil.isNotBlank(userid)) {
-            customers.add(new SocketIOClient.Customer(CustomerType.USER, userid));
-        }
         socketIOClient.connection();
-        socketIOClient.onConnection(new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                if (customers.size() != 0) {
-                    Map<SocketIOClient.Customer, Map<String, String>> resultMap = socketIOClient.register(customers);
-                    for (Map.Entry<SocketIOClient.Customer, Map<String, String>> resultEntry : resultMap.entrySet()) {
-                        if ("0".equals(resultEntry.getValue().get("flag"))) {
-                            logger.fine(String.format("%s register failed\n%s", resultEntry.getKey().toString(), resultEntry.getValue()));
-                        }
-                    }
-                }
-            }
-        });
         return socketIOClient;
     }
 

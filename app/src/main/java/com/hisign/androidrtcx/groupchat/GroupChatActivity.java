@@ -20,6 +20,7 @@ import com.hisign.androidrtcx.common.EventBusManager;
 import com.hisign.androidrtcx.groupchat.http.IMServiceManager;
 import com.hisign.androidrtcx.groupchat.pj.BaseIMResponse;
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.socket.ISocketEmitCallBack;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 import com.hisign.rtcx.Constant;
@@ -189,7 +190,14 @@ public class GroupChatActivity extends Activity {
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        socketIOClient.send(HANGUP_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff));
+                                        socketIOClient.send(HANGUP_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff), new ISocketEmitCallBack() {
+                                            @Override
+                                            public void call(String eventName, Object object, Map<String, String> responseMap) {
+                                                if (!"1".equals(responseMap.get("flag"))) {
+                                                    Log.e(TAG, String.format("%s error!\n%s", HANGUP_EVENT.getEventName(), responseMap.toString()));
+                                                }
+                                            }
+                                        });
                                     }
                                 }).start();
                             }
@@ -221,7 +229,14 @@ public class GroupChatActivity extends Activity {
             @Override
             public void run() {
                 for (SocketIOClient.Customer group : SocketIOClientUtil.getGroups()) {
-                    SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff));
+                    SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff), new ISocketEmitCallBack() {
+                        @Override
+                        public void call(String eventName, Object object, Map<String, String> responseMap) {
+                            if (!"1".equals(responseMap.get("flag"))) {
+                                Log.e(TAG, String.format("%s error!\n%s", TEXT_EVENT.getEventName(), responseMap.toString()));
+                            }
+                        }
+                    });
                 }
             }
         }).start();

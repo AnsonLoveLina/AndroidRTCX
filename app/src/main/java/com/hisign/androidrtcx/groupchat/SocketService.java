@@ -16,12 +16,14 @@ import com.hisign.androidrtcx.R;
 import com.hisign.androidrtcx.common.EventBusManager;
 import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.socket.ISocketEmitCallBack;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.Map;
 import java.util.Random;
 
 import io.socket.emitter.Emitter;
@@ -29,6 +31,7 @@ import io.socket.emitter.Emitter;
 import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
+import static com.hisign.broadcastx.socket.SocketIOClient.EVENT_REGISTER;
 
 public class SocketService extends Service {
     private static final String TAG = "SocketService";
@@ -55,10 +58,18 @@ public class SocketService extends Service {
     private void socketConnect() {
         String userId = Integer.toString((new Random()).nextInt(100000000));
         //ExecutorService executor = Executors.newSingleThreadExecutor();
-        socketIOClient = SocketIOClientUtil.socketConnect(getString(R.string.chat_socketio_url_default), userId, new String[]{"110"});
+        socketIOClient = SocketIOClientUtil.socketConnect(getString(R.string.chat_socketio_url_default));
         if (socketIOClient == null) {
             return;
         }
+        socketIOClient.register(new SocketIOClient.Customer(CustomerType.GROUP, "110"), new ISocketEmitCallBack() {
+            @Override
+            public void call(String eventName, Object object, Map<String, String> responseMap) {
+                if (!"1".equals(responseMap.get("flag"))) {
+                    Log.e(TAG, String.format("%s error!\n%s", EVENT_REGISTER, responseMap.toString()));
+                }
+            }
+        });
         final EventBus defaultEB = EventBusManager.getEventBus();
         socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
             @Override
