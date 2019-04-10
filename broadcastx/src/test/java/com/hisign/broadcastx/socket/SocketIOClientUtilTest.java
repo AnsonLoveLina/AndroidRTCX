@@ -68,7 +68,7 @@ public class SocketIOClientUtilTest {
 
     @Test
     public void socketConnect() {
-        SocketIOClient socketIOClient = SocketIOClientUtil.socketConnect("http://192.168.1.13:3000");
+        final SocketIOClient socketIOClient = SocketIOClientUtil.socketConnect("http://192.168.1.13:3000");
         if (socketIOClient == null) {
             return;
         }
@@ -76,28 +76,30 @@ public class SocketIOClientUtilTest {
             @Override
             public void call(String eventName, Object object, Map<String, String> responseMap) {
                 System.out.println("responseMap = " + responseMap);
-            }
-        });
-        socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                for (Object object : args) {
-                    Stuff stuff = null;
-                    try {
-                        stuff = JSON.parseObject(object.toString(), Stuff.class);
-                        System.out.println(Thread.currentThread());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println("stuff = " + stuff);
+                if("1".equals(responseMap.get("flag"))){
+                    socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
+                        @Override
+                        public void call(Object... args) {
+                            for (Object object : args) {
+                                Stuff stuff = null;
+                                try {
+                                    stuff = JSON.parseObject(object.toString(), Stuff.class);
+                                    System.out.println(Thread.currentThread());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                System.out.println("stuff = " + stuff);
+                            }
+                        }
+                    });
+                    Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), "110", CustomerType.GROUP, "110", TEXT_EVENT, "111111");
+                    socketIOClient.send(TEXT_EVENT.getEventName(), "110", JSON.toJSONString(stuff), new ISocketEmitCallBack() {
+                        @Override
+                        public void call(String eventName, Object object, Map<String, String> responseMap) {
+                            System.out.println("responseMap = " + responseMap);
+                        }
+                    });
                 }
-            }
-        });
-        Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), "110", CustomerType.GROUP, "110", TEXT_EVENT, "111111");
-        socketIOClient.send(TEXT_EVENT.getEventName(), "110", JSON.toJSONString(stuff), new ISocketEmitCallBack() {
-            @Override
-            public void call(String eventName, Object object, Map<String, String> responseMap) {
-                System.out.println("responseMap = " + responseMap);
             }
         });
         try {

@@ -220,7 +220,7 @@ public class SocketIOClient {
     }
 
     private void emit(final String eventName, final Object object, final ISocketEmitCallBack iSocketEmitCallBack) {
-        socket.emit(eventName, object, new Ack() {
+        connectedEmitter.emit(eventName, object, new Ack() {
             @Override
             public void call(final Object... args) {
                 ExecutorService executorService = Executors.newCachedThreadPool();
