@@ -16,8 +16,13 @@ public class Constant {
     }
     public static Map<String, String> timeoutFailResponseMap = Maps.newHashMap();
     static {
-        defaultFailResponseMap.put("flag","0");
-        defaultFailResponseMap.put("messageLevel","err");
-        defaultFailResponseMap.put("message","emit timeout error!");
+        timeoutFailResponseMap.put("flag","0");
+        timeoutFailResponseMap.put("messageLevel","err");
+        timeoutFailResponseMap.put("message","emit timeout error!");
+    }
+    public static Map<String, String> baseFailResponseMap = Maps.newHashMap();
+    static {
+        baseFailResponseMap.put("flag","0");
+        baseFailResponseMap.put("messageLevel","err");
     }
 }

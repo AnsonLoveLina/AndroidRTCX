@@ -34,6 +34,7 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import jodd.util.StringUtil;
 
+import static com.hisign.broadcastx.util.Constant.baseFailResponseMap;
 import static com.hisign.broadcastx.util.Constant.defaultFailResponseMap;
 import static com.hisign.broadcastx.util.Constant.timeoutFailResponseMap;
 
@@ -159,10 +160,14 @@ public class SocketIOClient {
             @Override
             public void call(Object... args) {
                 if (status.ordinal() > STATUS.REGISTER.ordinal()) {
+                    baseFailResponseMap.put("messageLevel","status: " + status + ",register error,socketIO not connected!");
+                    iSocketEmitCallBack.call(baseFailResponseMap);
                     logger.info("status: " + status + ",register error,socketIO not connected!");
                     return;
                 }
                 if (customer == null) {
+                    baseFailResponseMap.put("messageLevel","customer is empty!");
+                    iSocketEmitCallBack.call(baseFailResponseMap);
                     logger.fine("customer is empty!");
                     return;
                 }
@@ -174,13 +179,14 @@ public class SocketIOClient {
                 }
                 addCustomers(customer);
                 emit(EVENT_REGISTER, jsonObject, iSocketEmitCallBack);
-                status = STATUS.REGISTER;
             }
         });
     }
 
     public void unRegister(Customer customer, ISocketEmitCallBack iSocketEmitCallBack) {
         if (!customers.contains(customer)) {
+            baseFailResponseMap.put("messageLevel",customer + " not registered!");
+            iSocketEmitCallBack.call(baseFailResponseMap);
             logger.warning(customer + " not registered!");
             return;
         }
@@ -192,9 +198,6 @@ public class SocketIOClient {
         }
         removeCustomers(customer);
         emit(EVENT_UNREGISTER, jsonObject, iSocketEmitCallBack);
-        if (customers.isEmpty()) {
-            status = STATUS.UNREGISTER;
-        }
     }
 
     public void disconnect() {
@@ -205,6 +208,8 @@ public class SocketIOClient {
     public void send(String event, String targetCustomer, Object object, ISocketEmitCallBack iSocketEmitCallBack) {
         System.out.println("send:" + Thread.currentThread());
         if (status.ordinal() > STATUS.REGISTER.ordinal()) {
+            baseFailResponseMap.put("messageLevel","status: " + status + ",send error,socketIO not connected!");
+            iSocketEmitCallBack.call(baseFailResponseMap);
             logger.info("status: " + status + ",send error,socketIO not connected!");
             return;
         }
@@ -237,14 +242,22 @@ public class SocketIOClient {
                         return responseMap;
                     }
                 });
+                switch (eventName) {
+                    case EVENT_REGISTER:
+                        status = STATUS.REGISTER;
+                    case EVENT_UNREGISTER:
+                        if (customers.isEmpty()) {
+                            status = STATUS.UNREGISTER;
+                        }
+                }
                 try {
-                    iSocketEmitCallBack.call(eventName, object, future.get(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT));
+                    iSocketEmitCallBack.call(future.get(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT));
                 } catch (TimeoutException e) {
                     logger.fine(e.getMessage());
-                    iSocketEmitCallBack.call(eventName, object, timeoutFailResponseMap);
+                    iSocketEmitCallBack.call(timeoutFailResponseMap);
                 } catch (Exception e) {
                     logger.fine(e.getMessage());
-                    iSocketEmitCallBack.call(eventName, object, defaultFailResponseMap);
+                    iSocketEmitCallBack.call(defaultFailResponseMap);
                 }
             }
         });
