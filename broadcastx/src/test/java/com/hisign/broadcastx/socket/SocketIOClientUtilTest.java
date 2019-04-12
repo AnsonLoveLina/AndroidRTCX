@@ -1,6 +1,7 @@
 package com.hisign.broadcastx.socket;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.pj.Stuff;
@@ -24,46 +25,17 @@ import io.socket.emitter.Emitter;
 
 import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
+import static com.hisign.broadcastx.util.Constant.baseFailResponseMap;
 import static org.junit.Assert.*;
 
 public class SocketIOClientUtilTest {
 
     @Test
     public void linkedBlockingQueue() {
-        final BlockingQueue<String> ackQueue = Queues.newSynchronousQueue();
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        Future future = executorService.submit(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                return null;
-            }
-        });
-        try {
-            future.get(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000000);
-                    System.out.println("put 1");
-                    ackQueue.put("1");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        try {
-            System.out.println(ackQueue.poll(5, TimeUnit.SECONDS));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        Map map1 = Maps.newHashMap(baseFailResponseMap);
+        map1.put("messageLevel", "111");
+        Map map2 = baseFailResponseMap;
+        map2.put("messageLevel", "222");
     }
 
     @Test
@@ -74,7 +46,7 @@ public class SocketIOClientUtilTest {
         }
         socketIOClient.register(new SocketIOClient.Customer(CustomerType.GROUP, "110"), new ISocketEmitCallBack() {
             @Override
-            public void call(String eventName, Object object, Map<String, String> responseMap) {
+            public void call(Map<String, String> responseMap) {
                 System.out.println("responseMap = " + responseMap);
                 if("1".equals(responseMap.get("flag"))){
                     socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
@@ -95,7 +67,7 @@ public class SocketIOClientUtilTest {
                     Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), "110", CustomerType.GROUP, "110", TEXT_EVENT, "111111");
                     socketIOClient.send(TEXT_EVENT.getEventName(), "110", JSON.toJSONString(stuff), new ISocketEmitCallBack() {
                         @Override
-                        public void call(String eventName, Object object, Map<String, String> responseMap) {
+                        public void call(Map<String, String> responseMap) {
                             System.out.println("responseMap = " + responseMap);
                         }
                     });

@@ -1,11 +1,13 @@
 package com.hisign.broadcastx.socket;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.util.Constant;
 import com.hisign.broadcastx.util.FastJsonUtil;
+import com.hisign.broadcastx.util.SocketUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -160,14 +162,12 @@ public class SocketIOClient {
             @Override
             public void call(Object... args) {
                 if (status.ordinal() > STATUS.REGISTER.ordinal()) {
-                    baseFailResponseMap.put("messageLevel","status: " + status + ",register error,socketIO not connected!");
-                    iSocketEmitCallBack.call(baseFailResponseMap);
+                    iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("status: " + status + ",register error,socketIO not connected!"));
                     logger.info("status: " + status + ",register error,socketIO not connected!");
                     return;
                 }
                 if (customer == null) {
-                    baseFailResponseMap.put("messageLevel","customer is empty!");
-                    iSocketEmitCallBack.call(baseFailResponseMap);
+                    iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("customer is empty!"));
                     logger.fine("customer is empty!");
                     return;
                 }
@@ -185,8 +185,7 @@ public class SocketIOClient {
 
     public void unRegister(Customer customer, ISocketEmitCallBack iSocketEmitCallBack) {
         if (!customers.contains(customer)) {
-            baseFailResponseMap.put("messageLevel",customer + " not registered!");
-            iSocketEmitCallBack.call(baseFailResponseMap);
+            iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap(customer + " not registered!"));
             logger.warning(customer + " not registered!");
             return;
         }
@@ -208,8 +207,7 @@ public class SocketIOClient {
     public void send(String event, String targetCustomer, Object object, ISocketEmitCallBack iSocketEmitCallBack) {
         System.out.println("send:" + Thread.currentThread());
         if (status.ordinal() > STATUS.REGISTER.ordinal()) {
-            baseFailResponseMap.put("messageLevel","status: " + status + ",send error,socketIO not connected!");
-            iSocketEmitCallBack.call(baseFailResponseMap);
+            iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("status: " + status + ",send error,socketIO not connected!"));
             logger.info("status: " + status + ",send error,socketIO not connected!");
             return;
         }
@@ -228,20 +226,14 @@ public class SocketIOClient {
         connectedEmitter.emit(eventName, object, new Ack() {
             @Override
             public void call(final Object... args) {
-                ExecutorService executorService = Executors.newCachedThreadPool();
-                Future<Map<String, String>> future = executorService.submit(new Callable<Map<String, String>>() {
-                    @Override
-                    public Map<String, String> call() {
-                        String response = args[0] == null ? "" : args[0].toString();
-                        Map<String, String> responseMap = null;
-                        try {
-                            responseMap = FastJsonUtil.parseObject(response, Map.class);
-                        } catch (Exception e) {
-                            logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
-                        }
-                        return responseMap;
-                    }
-                });
+                String response = args[0] == null ? "" : args[0].toString();
+                Map<String, String> responseMap = null;
+                try {
+                    responseMap = FastJsonUtil.parseObject(response, Map.class);
+                } catch (Exception e) {
+                    responseMap = SocketUtil.getBaseFailResponseMap(String.format("%s can not parse to %s", response, Stuff.class.toString()));
+                    logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
+                }
                 switch (eventName) {
                     case EVENT_REGISTER:
                         status = STATUS.REGISTER;
@@ -250,15 +242,7 @@ public class SocketIOClient {
                             status = STATUS.UNREGISTER;
                         }
                 }
-                try {
-                    iSocketEmitCallBack.call(future.get(Constant.EMIT_TIMEOUT, Constant.EMIT_TIMEUNIT));
-                } catch (TimeoutException e) {
-                    logger.fine(e.getMessage());
-                    iSocketEmitCallBack.call(timeoutFailResponseMap);
-                } catch (Exception e) {
-                    logger.fine(e.getMessage());
-                    iSocketEmitCallBack.call(defaultFailResponseMap);
-                }
+                iSocketEmitCallBack.call(responseMap);
             }
         });
     }
