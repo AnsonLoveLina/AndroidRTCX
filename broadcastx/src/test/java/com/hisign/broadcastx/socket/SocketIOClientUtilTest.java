@@ -6,6 +6,8 @@ import com.google.common.collect.Queues;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.pj.StuffEvent;
+import com.hisign.broadcastx.util.FastJsonUtil;
+import com.hisign.broadcastx.util.SocketUtil;
 
 import org.junit.Test;
 
@@ -25,22 +27,15 @@ import io.socket.emitter.Emitter;
 
 import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
+import static com.hisign.broadcastx.util.Constant.SUCCESS_FLAG;
 import static com.hisign.broadcastx.util.Constant.baseFailResponseMap;
 import static org.junit.Assert.*;
 
 public class SocketIOClientUtilTest {
 
     @Test
-    public void linkedBlockingQueue() {
-        Map map1 = Maps.newHashMap(baseFailResponseMap);
-        map1.put("messageLevel", "111");
-        Map map2 = baseFailResponseMap;
-        map2.put("messageLevel", "222");
-    }
-
-    @Test
     public void socketConnect() {
-        final SocketIOClient socketIOClient = SocketIOClientUtil.socketConnect("http://192.168.1.13:3000");
+        final SocketIOClient socketIOClient = SocketIOClientUtil.socketConnect("http://192.168.1.100:3000");
         if (socketIOClient == null) {
             return;
         }
@@ -48,7 +43,7 @@ public class SocketIOClientUtilTest {
             @Override
             public void call(Map<String, String> responseMap) {
                 System.out.println("responseMap = " + responseMap);
-                if("1".equals(responseMap.get("flag"))){
+                if(SUCCESS_FLAG.equals(responseMap.get("flag"))){
                     socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
                         @Override
                         public void call(Object... args) {

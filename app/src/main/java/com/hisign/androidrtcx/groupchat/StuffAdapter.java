@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
+import static com.hisign.broadcastx.util.Constant.SUCCESS_FLAG;
 
 public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> {
     private static final String TAG = "StuffAdapter";
@@ -76,8 +77,8 @@ public class StuffAdapter extends RecyclerView.Adapter<StuffAdapter.ViewHolder> 
                             Stuff outStuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), stuff.getSource(), CustomerType.USER, stuff.getSource(), CALL_EVENT, "");
                             socketIOClient.send(CALL_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff), new ISocketEmitCallBack() {
                                 @Override
-                                public void call(String eventName, Object object, Map<String, String> responseMap) {
-                                    if (!"1".equals(responseMap.get("flag"))) {
+                                public void call(Map<String, String> responseMap) {
+                                    if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
                                         Log.e(TAG, String.format("%s error!\n%s", CALL_EVENT.getEventName(), responseMap.toString()));
                                     }
                                 }

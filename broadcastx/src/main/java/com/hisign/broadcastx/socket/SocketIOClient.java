@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -138,11 +139,11 @@ public class SocketIOClient {
             opts.forceNew = false;
             opts.reconnection = true;
             socket = IO.socket(url, opts);
-            logger.info("send socketIO connection!");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         socket.connect();
+        logger.info("socketIO connection!");
     }
 
     public Emitter onListener(String event, Emitter.Listener listener) {
@@ -223,17 +224,9 @@ public class SocketIOClient {
     }
 
     private void emit(final String eventName, final Object object, final ISocketEmitCallBack iSocketEmitCallBack) {
-        connectedEmitter.emit(eventName, object, new Ack() {
+        connectedEmitter.emit(eventName, object, new AckWithTimeOut() {
             @Override
-            public void call(final Object... args) {
-                String response = args[0] == null ? "" : args[0].toString();
-                Map<String, String> responseMap = null;
-                try {
-                    responseMap = FastJsonUtil.parseObject(response, Map.class);
-                } catch (Exception e) {
-                    responseMap = SocketUtil.getBaseFailResponseMap(String.format("%s can not parse to %s", response, Stuff.class.toString()));
-                    logger.fine(String.format("%s can not parse to %s", response, Stuff.class.toString()));
-                }
+            public void responseCall(Map<String, String> responseMap) {
                 switch (eventName) {
                     case EVENT_REGISTER:
                         status = STATUS.REGISTER;
@@ -264,6 +257,18 @@ public class SocketIOClient {
                         logger.warning("socketIO disconnect!");
                     }
                 });
+            }
+        });
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            /**
+             * EVENT_CONNECT_ERROR该方法不允许阻塞
+             * @param args
+             */
+            @Override
+            public void call(final Object... args) {
+                logger.info("socketIO connect error!\n"+args[0]);
+                status = STATUS.CLOSE;
+                listener.call(args);
             }
         });
     }

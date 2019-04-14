@@ -6,23 +6,30 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class Constant {
-    public static long EMIT_TIMEOUT = 30;
-    public static TimeUnit EMIT_TIMEUNIT = TimeUnit.SECONDS;
+    public static String SUCCESS_FLAG = "1";
+    public static String ERROR_FLAG = "0";
+    public static String TIMEOUT_FLAG = "2";
+    public static long EMIT_TIMEOUT = 10000;
     public static Map<String, String> defaultFailResponseMap = Maps.newHashMap();
+
     static {
-        defaultFailResponseMap.put("flag","0");
-        defaultFailResponseMap.put("messageLevel","err");
-        defaultFailResponseMap.put("message","unknown error!");
+        defaultFailResponseMap.put("flag", ERROR_FLAG);
+        defaultFailResponseMap.put("messageLevel", "err");
+        defaultFailResponseMap.put("message", "unknown error!");
     }
+
     public static Map<String, String> timeoutFailResponseMap = Maps.newHashMap();
+
     static {
-        timeoutFailResponseMap.put("flag","0");
-        timeoutFailResponseMap.put("messageLevel","err");
-        timeoutFailResponseMap.put("message","emit timeout error!");
+        timeoutFailResponseMap.put("flag", TIMEOUT_FLAG);
+        timeoutFailResponseMap.put("messageLevel", "err");
+        timeoutFailResponseMap.put("message", "emit timeout error!");
     }
+
     public static Map<String, String> baseFailResponseMap = Maps.newHashMap();
+
     static {
-        baseFailResponseMap.put("flag","0");
-        baseFailResponseMap.put("messageLevel","err");
+        baseFailResponseMap.put("flag", ERROR_FLAG);
+        baseFailResponseMap.put("messageLevel", "err");
     }
 }

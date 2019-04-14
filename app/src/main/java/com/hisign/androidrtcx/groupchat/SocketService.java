@@ -19,6 +19,7 @@ import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.ISocketEmitCallBack;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
+import com.hisign.broadcastx.util.Constant;
 import com.hisign.broadcastx.util.FastJsonUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -32,6 +33,7 @@ import static com.hisign.broadcastx.pj.StuffEvent.CALL_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
 import static com.hisign.broadcastx.socket.SocketIOClient.EVENT_REGISTER;
+import static com.hisign.broadcastx.util.Constant.SUCCESS_FLAG;
 
 public class SocketService extends Service {
     private static final String TAG = "SocketService";
@@ -64,8 +66,8 @@ public class SocketService extends Service {
         }
         socketIOClient.register(new SocketIOClient.Customer(CustomerType.GROUP, "110"), new ISocketEmitCallBack() {
             @Override
-            public void call(String eventName, Object object, Map<String, String> responseMap) {
-                if (!"1".equals(responseMap.get("flag"))) {
+            public void call(Map<String, String> responseMap) {
+                if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
                     Log.e(TAG, String.format("%s error!\n%s", EVENT_REGISTER, responseMap.toString()));
                 }
             }

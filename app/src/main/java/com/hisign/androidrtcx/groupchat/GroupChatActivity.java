@@ -46,6 +46,7 @@ import rx.schedulers.Schedulers;
 import static com.hisign.broadcastx.CustomerType.GROUP;
 import static com.hisign.broadcastx.pj.StuffEvent.HANGUP_EVENT;
 import static com.hisign.broadcastx.pj.StuffEvent.TEXT_EVENT;
+import static com.hisign.broadcastx.util.Constant.SUCCESS_FLAG;
 
 public class GroupChatActivity extends Activity {
     private static final String TAG = "GroupChatActivity";
@@ -192,8 +193,8 @@ public class GroupChatActivity extends Activity {
                                     public void run() {
                                         socketIOClient.send(HANGUP_EVENT.getEventName(), stuff.getSource(), JSON.toJSONString(outStuff), new ISocketEmitCallBack() {
                                             @Override
-                                            public void call(String eventName, Object object, Map<String, String> responseMap) {
-                                                if (!"1".equals(responseMap.get("flag"))) {
+                                            public void call(Map<String, String> responseMap) {
+                                                if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
                                                     Log.e(TAG, String.format("%s error!\n%s", HANGUP_EVENT.getEventName(), responseMap.toString()));
                                                 }
                                             }
@@ -231,8 +232,8 @@ public class GroupChatActivity extends Activity {
                 for (SocketIOClient.Customer group : SocketIOClientUtil.getGroups()) {
                     SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff), new ISocketEmitCallBack() {
                         @Override
-                        public void call(String eventName, Object object, Map<String, String> responseMap) {
-                            if (!"1".equals(responseMap.get("flag"))) {
+                        public void call(Map<String, String> responseMap) {
+                            if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
                                 Log.e(TAG, String.format("%s error!\n%s", TEXT_EVENT.getEventName(), responseMap.toString()));
                             }
                         }
