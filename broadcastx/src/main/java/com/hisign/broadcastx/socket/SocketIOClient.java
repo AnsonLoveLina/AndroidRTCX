@@ -1,45 +1,22 @@
 package com.hisign.broadcastx.socket;
 
-import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Queues;
 import com.hisign.broadcastx.CustomerType;
-import com.hisign.broadcastx.pj.Stuff;
-import com.hisign.broadcastx.util.Constant;
-import com.hisign.broadcastx.util.FastJsonUtil;
 import com.hisign.broadcastx.util.SocketUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import jodd.util.StringUtil;
-
-import static com.hisign.broadcastx.util.Constant.baseFailResponseMap;
-import static com.hisign.broadcastx.util.Constant.defaultFailResponseMap;
-import static com.hisign.broadcastx.util.Constant.timeoutFailResponseMap;
 
 public class SocketIOClient {
 
@@ -152,7 +129,7 @@ public class SocketIOClient {
             logger.warning("no one registered!");
         }
         if (connectedEmitter == null) {
-            logger.fine("socketIO not connected!");
+            logger.log(Level.SEVERE,"socketIO not connected!");
             return null;
         }
         return connectedEmitter.on(event, listener);
@@ -169,7 +146,7 @@ public class SocketIOClient {
                 }
                 if (customer == null) {
                     iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("customer is empty!"));
-                    logger.fine("customer is empty!");
+                    logger.log(Level.SEVERE,"customer is empty!");
                     return;
                 }
                 JSONObject jsonObject = new JSONObject();
@@ -206,7 +183,6 @@ public class SocketIOClient {
     }
 
     public void send(String event, String targetCustomer, Object object, ISocketEmitCallBack iSocketEmitCallBack) {
-        System.out.println("send:" + Thread.currentThread());
         if (status.ordinal() > STATUS.REGISTER.ordinal()) {
             iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("status: " + status + ",send error,socketIO not connected!"));
             logger.info("status: " + status + ",send error,socketIO not connected!");
@@ -224,7 +200,7 @@ public class SocketIOClient {
     }
 
     private void emit(final String eventName, final Object object, final ISocketEmitCallBack iSocketEmitCallBack) {
-        connectedEmitter.emit(eventName, object, new AckWithTimeOut() {
+        connectedEmitter.emit(eventName, object, new AckESTimeOut() {
             @Override
             public void responseCall(Map<String, String> responseMap) {
                 switch (eventName) {

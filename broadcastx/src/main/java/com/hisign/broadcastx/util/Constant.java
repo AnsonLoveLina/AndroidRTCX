@@ -9,7 +9,7 @@ public class Constant {
     public static String SUCCESS_FLAG = "1";
     public static String ERROR_FLAG = "0";
     public static String TIMEOUT_FLAG = "2";
-    public static long EMIT_TIMEOUT = 10000;
+    public static long EMIT_TIMEOUT = 1000000;
     public static Map<String, String> defaultFailResponseMap = Maps.newHashMap();
 
     static {
