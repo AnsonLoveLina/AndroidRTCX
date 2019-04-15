@@ -17,6 +17,7 @@ import com.hisign.androidrtcx.common.EventBusManager;
 import com.hisign.broadcastx.pj.Stuff;
 import com.hisign.broadcastx.CustomerType;
 import com.hisign.broadcastx.socket.ISocketEmitCallBack;
+import com.hisign.broadcastx.socket.ListenerNoBlock;
 import com.hisign.broadcastx.socket.SocketIOClient;
 import com.hisign.broadcastx.socket.SocketIOClientUtil;
 import com.hisign.broadcastx.util.Constant;
@@ -73,62 +74,29 @@ public class SocketService extends Service {
             }
         });
         final EventBus defaultEB = EventBusManager.getEventBus();
-        socketIOClient.onListener(TEXT_EVENT.getEventName(), new Emitter.Listener() {
+        socketIOClient.onListener(TEXT_EVENT.getEventName(), new ListenerNoBlock<Stuff>() {
             @Override
-            public void call(Object... args) {
-                for (Object object : args) {
-                    Stuff stuff = null;
-                    try {
-                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
-                    } catch (Exception e) {
-                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
-                    }
-                    if (stuff == null) {
-                        return;
-                    }
-                    defaultEB.post(stuff);
-                }
+            public void onEventCall(Stuff stuff) {
+                defaultEB.post(stuff);
             }
         });
-        socketIOClient.onListener(CALL_EVENT.getEventName(), new Emitter.Listener() {
+        socketIOClient.onListener(CALL_EVENT.getEventName(), new ListenerNoBlock<Stuff>() {
             @Override
-            public void call(Object... args) {
-                for (Object object : args) {
-                    Stuff stuff = null;
-                    try {
-                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
-                    } catch (Exception e) {
-                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
-                    }
-                    if (stuff == null) {
-                        return;
-                    }
-                    defaultEB.post(stuff);
-                }
+            public void onEventCall(Stuff stuff) {
+                defaultEB.post(stuff);
             }
         });
         final EventBus hangupEB = EventBusManager.getEventBus(HANGUP_EVENT.getEventName());
-        socketIOClient.onListener(HANGUP_EVENT.getEventName(), new Emitter.Listener() {
+        socketIOClient.onListener(HANGUP_EVENT.getEventName(), new ListenerNoBlock<Stuff>() {
             @Override
-            public void call(Object... args) {
-                for (Object object : args) {
-                    Stuff stuff = null;
-                    try {
-                        stuff = FastJsonUtil.parseObject(object, Stuff.class);
-                    } catch (Exception e) {
-                        Log.e(TAG, String.format("%s can not parse to %s", object == null ? "" : object.toString(), Stuff.class.toString()));
-                    }
-                    if (stuff == null) {
-                        return;
-                    }
-                    hangupEB.post(stuff);
-                }
+            public void onEventCall(Stuff stuff) {
+                hangupEB.post(stuff);
             }
         });
-        socketIOClient.onListener(SocketIOClient.EVENT_INFO, new Emitter.Listener() {
+        socketIOClient.onListener(SocketIOClient.EVENT_INFO, new ListenerNoBlock<String>() {
             @Override
-            public void call(Object... args) {
-                Log.i(TAG, args[0].toString());
+            public void onEventCall(String string) {
+                Log.i(TAG, string);
             }
         });
 //            }

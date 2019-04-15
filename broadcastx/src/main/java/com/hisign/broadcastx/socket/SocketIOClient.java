@@ -1,6 +1,7 @@
 package com.hisign.broadcastx.socket;
 
 import com.hisign.broadcastx.CustomerType;
+import com.hisign.broadcastx.socket.ack.AckESTimeOut;
 import com.hisign.broadcastx.util.SocketUtil;
 
 import org.json.JSONException;
@@ -10,6 +11,8 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -129,10 +132,43 @@ public class SocketIOClient {
             logger.warning("no one registered!");
         }
         if (connectedEmitter == null) {
-            logger.log(Level.SEVERE,"socketIO not connected!");
+            logger.log(Level.SEVERE, "socketIO not connected!");
             return null;
         }
         return connectedEmitter.on(event, listener);
+    }
+
+    private void onConnection(final Emitter.Listener listener) {
+        connectedEmitter = socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            /**
+             * EVENT_CONNECT该方法不允许阻塞
+             * @param args
+             */
+            @Override
+            public void call(final Object... args) {
+                logger.info("socketIO is connected!");
+                status = STATUS.CONNECT;
+                listener.call(args);
+                socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        logger.warning("socketIO disconnect!");
+                    }
+                });
+            }
+        });
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            /**
+             * EVENT_CONNECT_ERROR该方法不允许阻塞
+             * @param args
+             */
+            @Override
+            public void call(final Object... args) {
+                logger.info("socketIO connect error!\n" + args[0]);
+                status = STATUS.CLOSE;
+                listener.call(args);
+            }
+        });
     }
 
     public void register(final Customer customer, final ISocketEmitCallBack iSocketEmitCallBack) {
@@ -146,7 +182,7 @@ public class SocketIOClient {
                 }
                 if (customer == null) {
                     iSocketEmitCallBack.call(SocketUtil.getBaseFailResponseMap("customer is empty!"));
-                    logger.log(Level.SEVERE,"customer is empty!");
+                    logger.log(Level.SEVERE, "customer is empty!");
                     return;
                 }
                 JSONObject jsonObject = new JSONObject();
@@ -212,39 +248,6 @@ public class SocketIOClient {
                         }
                 }
                 iSocketEmitCallBack.call(responseMap);
-            }
-        });
-    }
-
-    public void onConnection(final Emitter.Listener listener) {
-        connectedEmitter = socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            /**
-             * EVENT_CONNECT该方法不允许阻塞
-             * @param args
-             */
-            @Override
-            public void call(final Object... args) {
-                logger.info("socketIO is connected!");
-                status = STATUS.CONNECT;
-                listener.call(args);
-                socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        logger.warning("socketIO disconnect!");
-                    }
-                });
-            }
-        });
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-            /**
-             * EVENT_CONNECT_ERROR该方法不允许阻塞
-             * @param args
-             */
-            @Override
-            public void call(final Object... args) {
-                logger.info("socketIO connect error!\n"+args[0]);
-                status = STATUS.CLOSE;
-                listener.call(args);
             }
         });
     }
