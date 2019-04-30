@@ -121,6 +121,7 @@ public class SocketIOClientUtilTest {
                         @Override
                         public void onEventCall(Stuff object) {
                             System.out.println("stuff = " + object);
+                            System.out.println("1111");
                         }
                     });
                     Stuff stuff = new Stuff(SocketIOClientUtil.getUser().getCustomerId(), "110", CustomerType.GROUP, "110", TEXT_EVENT, "1");

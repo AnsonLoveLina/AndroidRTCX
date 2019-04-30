@@ -73,6 +73,14 @@ public class SocketService extends Service {
                 }
             }
         });
+        socketIOClient.register(new SocketIOClient.Customer(CustomerType.USER, userId), new ISocketEmitCallBack() {
+            @Override
+            public void call(Map<String, String> responseMap) {
+                if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
+                    Log.e(TAG, String.format("%s error!\n%s", EVENT_REGISTER, responseMap.toString()));
+                }
+            }
+        });
         final EventBus defaultEB = EventBusManager.getEventBus();
         socketIOClient.onListener(TEXT_EVENT.getEventName(), new ListenerNoBlock<Stuff>() {
             @Override

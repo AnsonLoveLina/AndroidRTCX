@@ -229,16 +229,14 @@ public class GroupChatActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (SocketIOClient.Customer group : SocketIOClientUtil.getGroups()) {
-                    SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), group.getCustomerId(), JSON.toJSONString(stuff), new ISocketEmitCallBack() {
-                        @Override
-                        public void call(Map<String, String> responseMap) {
-                            if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
-                                Log.e(TAG, String.format("%s error!\n%s", TEXT_EVENT.getEventName(), responseMap.toString()));
-                            }
+                SocketIOClientUtil.getInstance().send(TEXT_EVENT.getEventName(), SocketIOClientUtil.getUser().getCustomerId(), JSON.toJSONString(stuff), new ISocketEmitCallBack() {
+                    @Override
+                    public void call(Map<String, String> responseMap) {
+                        if (!SUCCESS_FLAG.equals(responseMap.get("flag"))) {
+                            Log.e(TAG, String.format("%s error!\n%s", TEXT_EVENT.getEventName(), responseMap.toString()));
                         }
-                    });
-                }
+                    }
+                });
             }
         }).start();
     }

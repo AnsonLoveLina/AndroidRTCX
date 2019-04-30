@@ -90,7 +90,7 @@ public class SocketIOClient {
     private void addCustomers(Customer... customers) {
         for (Customer customer : customers) {
             this.customers.add(customer);
-            if ("user".equals(customer.getCustomerType().getCustomerType())) {
+            if (CustomerType.USER.equals(customer.getCustomerType())) {
                 userCustomer = customer;
             }
         }
