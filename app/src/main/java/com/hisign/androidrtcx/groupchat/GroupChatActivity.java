@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -55,7 +56,7 @@ public class GroupChatActivity extends Activity {
 
     private EditText inputText;
 
-    private Button send;
+    private ImageView send;
 
     private RecyclerView stuffRecyclerView;
 
@@ -107,7 +108,7 @@ public class GroupChatActivity extends Activity {
         stuffAdapter = new StuffAdapter(stuffs, SocketIOClientUtil.getInstance(), GroupChatActivity.this);
         stuffRecyclerView.setAdapter(stuffAdapter);
         //设置发送按钮
-        send = (Button) findViewById(R.id.button);
+        send = (ImageView) findViewById(R.id.btn_emoji);
         inputText = (EditText) findViewById(R.id.input_text_msg);
         send.setOnClickListener(new View.OnClickListener() {
             @Override

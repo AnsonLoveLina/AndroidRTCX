@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".groupchat.GroupChatActivity">
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context=".groupchat.GroupChatActivity">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/stuff_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/input_text_msg"
-        app:layout_constraintTop_toTopOf="parent" />
+<android.support.v7.widget.RecyclerView
+    android:id="@+id/stuff_recycler_view"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    app:layout_constraintBottom_toTopOf="@id/input_text_msg"
+    app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/btn_voice"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp30"
+        android:layout_weight="1"
+        android:background="@null"
+        android:clickable="true"
+        android:padding="@dimen/dp5"
+        android:src="@drawable/selector_menu_voice"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
 
     <EditText
         android:id="@+id/input_text_msg"
@@ -19,15 +31,32 @@
         android:layout_height="wrap_content"
         android:maxLines="2"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@id/stuff_recycler_view"
-        app:layout_constraintRight_toLeftOf="@id/button" />
+        app:layout_constraintLeft_toRightOf="@id/btn_voice"
+        app:layout_constraintRight_toLeftOf="@id/btn_emoji"/>
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="发送"
-        app:layout_constraintBottom_toBottomOf="@id/input_text_msg"
-        app:layout_constraintRight_toRightOf="parent" />
+    <ImageView
+        android:id="@+id/btn_emoji"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp30"
+        android:layout_weight="1"
+        android:background="@null"
+        android:clickable="true"
+        android:padding="@dimen/dp4"
+        android:src="@drawable/selector_menu_emoji"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/input_text_msg"
+        app:layout_constraintRight_toLeftOf="@id/btn_more"/>
+
+    <ImageView
+        android:id="@+id/btn_more"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp30"
+        android:layout_weight="1"
+        android:background="@null"
+        android:clickable="true"
+        android:padding="@dimen/dp3"
+        android:src="@drawable/selector_menu_more"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>
